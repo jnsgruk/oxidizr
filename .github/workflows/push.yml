@@ -1,0 +1,55 @@
+name: Build/Test oxidizr
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build/Test oxidizr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Build oxidizr
+        run: |
+          nix build .#oxidizr
+
+      - name: Run tests
+        run: |
+          nix develop --command cargo test -- --show-output
+
+  snap:
+    name: Build snap
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup LXD
+        uses: canonical/setup-lxd@v0.1.2
+
+      - name: Setup Snapcraft
+        run: sudo snap install --classic snapcraft
+
+      - name: Build snap
+        run: snapcraft --verbose

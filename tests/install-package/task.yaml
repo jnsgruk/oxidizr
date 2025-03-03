@@ -1,0 +1,15 @@
+summary: Test installing a package
+systems:
+  - ubuntu-24.04
+
+execute: |
+  pushd "${SPREAD_PATH}/${SPREAD_TASK}"
+
+  "$SPREAD_PATH"/target/debug/oxidizr
+
+  apt list rust-coreutils | MATCH installed
+
+# restore: |
+#   if [[ -z "${CI:-}" ]]; then
+#     "$SPREAD_PATH"/concierge --trace restore
+#   fi

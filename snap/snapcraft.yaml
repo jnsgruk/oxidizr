@@ -1,0 +1,36 @@
+name: oxidizr
+adopt-info: oxidizr
+summary: TODO
+description: |
+  TODO
+
+license: Apache-2.0
+contact: https://github.com/jnsgruk/oxidizr/issues
+issues: https://github.com/jnsgruk/oxidizr/issues
+source-code: https://github.com/jnsgruk/oxidizr
+
+base: core24
+confinement: strict
+grade: stable
+compression: lzo
+
+platforms:
+  amd64:
+  arm64:
+
+parts:
+  oxidizr:
+    plugin: rust
+    source: .
+    override-prime: |
+      craftctl default
+      bin_version="$($CRAFT_PRIME/bin/oxidizr --version | cut -d" " -f2)"
+      craftctl set version="$bin_version"
+
+apps:
+  oxidizr:
+    command: bin/oxidizr
+    plugs:
+      - home
+      - network
+      - network-bind
