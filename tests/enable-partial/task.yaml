@@ -1,0 +1,18 @@
+summary: Test installing packages
+execute: |
+  oxidizr enable --yes --experiments coreutils
+
+  apt list rust-coreutils | MATCH installed
+  while read p; do
+    ls -la "/usr/bin/$p"| MATCH "/usr/bin/$p -> /usr/bin/coreutils"
+    ls -la "/usr/bin/.$p.oxidizr.bak" || echo "No backup file for /usr/bin/$p"
+    /usr/bin/$p --help | NOMATCH "https://www.gnu.org/software/coreutils"
+  done < ../rust-coreutils-bins.txt
+
+  apt list rust-findutils | NOMATCH installed
+  apt list rust-diffutils | NOMATCH installed
+
+restore: |
+  if [[ -z "${CI:-}" ]]; then
+    oxidizr disable  --yes
+  fi

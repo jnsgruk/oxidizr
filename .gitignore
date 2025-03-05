@@ -1,0 +1,6 @@
+result*
+/target
+*.snap
+snapcraft*.txt
+test-up.sh
+.spread-reuse*

@@ -1,0 +1,32 @@
+name: Spread Matrix
+
+on:
+  workflow_call:
+    outputs:
+      tests:
+        description: Spread job matrix
+        value: ${{ jobs.spread-matrix.outputs.tests }}
+
+jobs:
+  spread-matrix:
+    name: Compute
+    runs-on: ubuntu-24.04
+    outputs:
+      tests: ${{ steps.tests.outputs.tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+
+      - name: Install
+        run: |
+          go install github.com/snapcore/spread/cmd/spread@latest
+
+      - name: Generate matrix list
+        id: tests
+        run: |
+          list="$(spread -list lxd | jq -r -ncR '[inputs | select(length>0)]')"
+          echo "tests=$list"
+          echo "tests=$list" >> "$GITHUB_OUTPUT"

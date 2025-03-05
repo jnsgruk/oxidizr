@@ -1,0 +1,61 @@
+name: CI (Push)
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    uses: ./.github/workflows/_lint.yml
+
+  test:
+    name: Test
+    uses: ./.github/workflows/_test.yml
+
+  spread-matrix:
+    name: Spread Matrix
+    uses: ./.github/workflows/_spread-matrix.yml
+
+  spread-tests:
+    name: Spread tests
+    uses: ./.github/workflows/_spread.yml
+    needs:
+      - test
+      - lint
+      - spread-matrix
+    with:
+      tests: ${{ needs.spread-matrix.outputs.tests }}
+
+  snap:
+    name: Build snap
+    needs:
+      - test
+      - lint
+      - spread-tests
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup LXD
+        uses: canonical/setup-lxd@v0.1.2
+
+      - name: Setup Snapcraft
+        run: sudo snap install --classic snapcraft
+
+      - name: Build snap
+        run: snapcraft --verbose

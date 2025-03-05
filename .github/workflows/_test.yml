@@ -1,0 +1,25 @@
+name: Test
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+          sudo snap install --classic rustup
+          rustup default stable
+
+      - name: Build
+        run: cargo build
+
+      - name: Unit tests
+        run: cargo test -- --show-output

@@ -1,0 +1,4 @@
+summary: Ensure application exits if not running as root
+execute: |
+  sudo -u spread oxidizr enable --yes 2>&1 | MATCH "Error: This program must be run as root"
+  sudo -u spread oxidizr disable --yes 2>&1 | MATCH "Error: This program must be run as root"

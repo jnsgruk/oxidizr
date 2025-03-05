@@ -1,0 +1,31 @@
+summary: Test enabling default experiments
+execute: |
+  oxidizr enable --yes
+
+  apt list rust-coreutils | MATCH installed
+  while read p; do
+    ls -la "/usr/bin/$p"| MATCH "/usr/bin/$p -> /usr/bin/coreutils"
+    ls -la "/usr/bin/.$p.oxidizr.bak" || echo "No backup file for /usr/bin/$p"
+    /usr/bin/$p --help | NOMATCH "https://www.gnu.org/software/coreutils"
+  done < ../rust-coreutils-bins.txt
+
+  apt list rust-findutils | MATCH installed
+  while read p; do
+    ls -la "/usr/bin/$p"| MATCH "/usr/bin/$p -> /usr/lib/cargo/bin/findutils/$p"
+    ls -la "/usr/bin/.$p.oxidizr.bak" || echo "No backup file for /usr/bin/$p"
+    /usr/bin/$p --help | NOMATCH "https://www.gnu.org/software/coreutils"
+  done < ../rust-findutils-bins.txt
+
+  if [[ "$(lsb_release -rs)" != "24.04" ]]; then
+    apt list rust-diffutils | MATCH installed
+    while read p; do
+      ls -la "/usr/bin/$p"| MATCH "/usr/bin/$p -> /usr/lib/cargo/bin/diffutils/$p"
+      ls -la "/usr/bin/.$p.oxidizr.bak" || echo "No backup file for /usr/bin/$p"
+      /usr/bin/$p --help | NOMATCH "https://www.gnu.org/software/coreutils"
+    done < ../rust-diffutils-bins.txt
+  fi
+
+restore: |
+  if [[ -z "${CI:-}" ]]; then
+    oxidizr disable  --yes
+  fi

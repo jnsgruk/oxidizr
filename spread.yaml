@@ -1,0 +1,64 @@
+project: oxidizr
+kill-timeout: 90m
+workers: 1
+
+environment:
+  CI: "$(HOST: echo $CI)"
+
+backends:
+  lxd:
+    type: adhoc
+    allocate: |
+      CONTAINER_NAME="${oxidizr-${SPREAD_SYSTEM/./-}-${RANDOM}}"
+
+      lxc launch \
+        "${SPREAD_SYSTEM/-/:}" \
+        "${CONTAINER_NAME}" \
+        -c user.user-data="$(sed "s|SPREAD_PASSWORD|$SPREAD_PASSWORD|g" tests/cloud-config.yaml)"
+
+      # Wait for the spread user
+      while ! lxc exec "${CONTAINER_NAME}" -- id -u spread &>/dev/null; do sleep 0.5; done
+
+      # Set the instance address for spread
+      ADDRESS "$(lxc ls -f csv | grep "${CONTAINER_NAME}" | cut -d"," -f3 | cut -d" " -f1)"
+    discard: |
+      instance_name="$(lxc ls -f csv | grep oxidizr | grep $SPREAD_SYSTEM_ADDRESS | cut -f1 -d",")"
+      lxc delete -f $instance_name
+    systems:
+      - ubuntu-24.04:
+          username: spread
+          workers: 1
+      - ubuntu-24.10:
+          username: spread
+          workers: 1
+
+suites:
+  tests/:
+    summary: Spread tests
+
+exclude:
+  - .git
+  - .github
+
+path: /root/proj
+
+prepare: |
+  snap refresh --hold
+  if systemctl is-enabled unattended-upgrades.service; then
+    systemctl stop unattended-upgrades.service
+    systemctl mask unattended-upgrades.service
+  fi
+
+  pushd "$SPREAD_PATH"
+
+  if [[ ! -f "$PWD/target/debug/oxidizr" ]]; then
+    apt-get update
+    apt-get install -y build-essential
+    snap install --classic rustup
+    rustup default stable
+    cargo build
+  fi
+
+  install -Dm755 "$PWD/target/debug/oxidizr" /usr/bin/oxidizr
+
+  pushd "${SPREAD_PATH}/${SPREAD_TASK}"
