@@ -30,3 +30,32 @@ jobs:
       - spread-matrix
     with:
       tests: ${{ needs.spread-matrix.outputs.tests }}
+
+  release:
+    name: Release oxidizr
+    runs-on: ubuntu-latest
+    environment: main
+    needs:
+      - spread-tests
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Rust
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+          sudo snap install --classic rustup
+
+      - name: Setup goreleaser
+        run: |
+          sudo snap install --classic goreleaser
+
+      - name: Release oxidizr
+        id: build
+        run: |
+          goreleaser release --clean --verbose
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

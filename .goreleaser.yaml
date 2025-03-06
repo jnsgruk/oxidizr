@@ -1,0 +1,40 @@
+version: 2
+project_name: oxidizr
+before:
+  hooks:
+    - rustup default stable
+    - cargo install cross --git https://github.com/cross-rs/cross
+
+builds:
+  - id: "oxidizr"
+    builder: rust
+    targets:
+      - x86_64-unknown-linux-gnu
+      - aarch64-unknown-linux-gnu
+    tool: "cross"
+    command: build
+
+archives:
+  - builds:
+      - default
+    files:
+      - "LICENSE*"
+      - "README*"
+
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+release:
+  prerelease: auto
+  footer: |
+    ## Thanks!
+
+    That's all the changes for {{ .Tag }}!
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^test:"
+      - "^ci:"

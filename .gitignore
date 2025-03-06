@@ -4,3 +4,4 @@ result*
 snapcraft*.txt
 test-up.sh
 .spread-reuse*
+dist/
