@@ -3,6 +3,7 @@ use anyhow::Result;
 use std::path::PathBuf;
 use tracing::{info, warn};
 
+/// An experiment to install and configure a Rust-based replacement for a system utility.
 pub struct UutilsExperiment<'a> {
     name: String,
     system: &'a dyn Worker,
@@ -13,6 +14,7 @@ pub struct UutilsExperiment<'a> {
 }
 
 impl<'a> UutilsExperiment<'a> {
+    /// Create a new UutilsExperiment.
     pub fn new(
         name: &str,
         system: &'a dyn Worker,
@@ -31,20 +33,24 @@ impl<'a> UutilsExperiment<'a> {
         }
     }
 
+    /// Check if the system is compatible with the experiment.
     fn check_compatible(&self) -> bool {
         self.system.distribution().release >= self.first_supported_release
     }
 
+    /// Check if the package is installed.
     fn check_installed(&self) -> bool {
         self.system.check_installed(&self.package).unwrap_or(false)
     }
 }
 
 impl UutilsExperiment<'_> {
+    /// Report the name of the experiment.
     pub fn name(&self) -> String {
         self.name.clone()
     }
 
+    /// Enable the experiment by installing and configuring the package.
     pub fn enable(&self) -> Result<()> {
         if !self.check_compatible() {
             warn!(
@@ -75,6 +81,7 @@ impl UutilsExperiment<'_> {
         Ok(())
     }
 
+    /// Disable the experiment by removing the package and restoring the original files.
     pub fn disable(&self) -> Result<()> {
         if !self.check_installed() {
             warn!("{} not found, skipping restore", self.package);

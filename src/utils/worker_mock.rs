@@ -7,8 +7,8 @@ pub mod tests {
 
     #[derive(Debug, Clone)]
     pub struct MockSystem {
+        /// Distribution information for the mock system.
         distribution: Distribution,
-
         /// Tracks the commands executed by the Worker
         pub commands: RefCell<Vec<String>>,
         /// Mock files that the Worker's file-related methods can see/act upon
