@@ -81,9 +81,6 @@ impl<'a> UutilsExperiment<'a> {
 
     /// Disable the experiment by removing the package and restoring the original files.
     pub fn disable(&self) -> Result<()> {
-        info!("Removing {}", self.package);
-        self.system.remove_package(&self.package)?;
-
         let files = self.system.list_files(self.bin_directory.clone())?;
 
         for f in files {
@@ -94,6 +91,9 @@ impl<'a> UutilsExperiment<'a> {
             };
             self.system.restore_file(existing)?;
         }
+
+        info!("Removing {}", self.package);
+        self.system.remove_package(&self.package)?;
 
         Ok(())
     }

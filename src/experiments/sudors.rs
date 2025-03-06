@@ -57,9 +57,6 @@ impl<'a> SudoRsExperiment<'a> {
 
     /// Disable the experiment by removing the package and restoring the original files.
     pub fn disable(&self) -> Result<()> {
-        info!("Removing {}", PACKAGE);
-        self.system.remove_package(PACKAGE)?;
-
         for f in Self::sudors_files() {
             let filename = f.file_name().unwrap();
             let existing = match which(filename) {
@@ -68,6 +65,9 @@ impl<'a> SudoRsExperiment<'a> {
             };
             self.system.restore_file(existing.clone())?;
         }
+
+        info!("Removing {}", PACKAGE);
+        self.system.remove_package(PACKAGE)?;
 
         Ok(())
     }
