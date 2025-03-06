@@ -4,6 +4,9 @@
 
 ## Installation
 
+> [!WARNING]
+> `oxidizr` is an experimental tool to help developers and tinkerers play with relatively new alternatives to core system utilities. It may cause a loss of data, or prevent your system from booting, so use with caution!
+
 You can install `oxidizr` using `cargo`:
 
 ```bash
