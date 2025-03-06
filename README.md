@@ -1,15 +1,13 @@
 # oxidizr
 
-<a href="https://snapcraft.io/oxidizr"><img alt="oxidizr" src="https://snapcraft.io/oxidizr/badge.svg"/></a>
-
 `oxidizr` is a command-line utility for managing system experiments that replace traditional Unix utilities with modern Rust-based alternatives on Ubuntu systems.
 
 ## Installation
 
-You can install `oxidizr` as a Snap:
+You can install `oxidizr` using `cargo`:
 
 ```bash
-sudo snap install --classic oxidizr
+cargo install --git https://github.com/jnsgruk/oxidizr
 ```
 
 ## Usage
@@ -60,7 +58,7 @@ sudo oxidizr enable --experiments coreutils findutils
 sudo oxidizr enable --experiments coreutils --yes -v
 ```
 
-## Building `oxidizr`.
+## Building `oxidizr`
 
 ```bash
 # Build with cargo
