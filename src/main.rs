@@ -61,7 +61,7 @@ struct Args {
     #[arg(
         short,
         long,
-        default_values_t = vec!["coreutils".to_string(), "findutils".to_string(), "diffutils".to_string()],
+        default_values_t = vec!["coreutils".to_string(), "findutils".to_string(), "diffutils".to_string(), "sudo-rs".to_string()],
         global = true,
         num_args = 1..,
         help = "Select experiments to enable or disable"

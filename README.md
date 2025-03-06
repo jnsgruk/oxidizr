@@ -2,6 +2,13 @@
 
 `oxidizr` is a command-line utility for managing system experiments that replace traditional Unix utilities with modern Rust-based alternatives on Ubuntu systems.
 
+It currently supports the following experiments:
+
+- [uutils coreutils](https://github.com/uutils/coreutils)
+- [uutils findutils](https://github.com/uutils/findutils)
+- [uutils diffutils](https://github.com/uutils/diffutils)
+- [sudo-rs](https://github.com/trifectatechfoundation/sudo-rs)
+
 ## Installation
 
 > [!WARNING]
@@ -43,7 +50,7 @@ Options:
   -e, --experiments <EXPERIMENTS>...
           Select experiments to enable or disable
 
-          [default: coreutils findutils diffutils]
+          [default: coreutils findutils diffutils sudo-rs]
 
   -h, --help
           Print help (see a summary with '-h')

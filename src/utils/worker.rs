@@ -1,4 +1,7 @@
-use std::{path::PathBuf, process::Output};
+use std::{
+    path::{Path, PathBuf},
+    process::Output,
+};
 
 use anyhow::Result;
 use std::fs;
@@ -165,6 +168,12 @@ impl Worker for System {
         let backup_file = backup_filename(&file);
         trace!("Backing up {} -> {}", file.display(), backup_file.display());
         fs::copy(&file, &backup_file)?;
+
+        // Ensure the same permissions are set on the backup file as on the original file.
+        // This accounts for permissions such as SUID, SGID, and sticky bits which are not
+        // preserved by `fs::copy`.
+        let metadata = fs::metadata(&file)?;
+        fs::set_permissions(&backup_file, metadata.permissions())?;
         Ok(())
     }
 
@@ -172,10 +181,10 @@ impl Worker for System {
     /// left untouched.
     fn restore_file(&self, file: PathBuf) -> Result<()> {
         let backup_file = backup_filename(&file);
-        remove_file_if_exists(&file)?;
 
         if fs::exists(&backup_file)? {
             trace!("Restoring {} -> {}", backup_file.display(), file.display());
+            dbg!(&backup_file, &file);
             fs::rename(&backup_file, &file)?;
         } else {
             warn!("No backup found for '{}', skipping restore", file.display());
@@ -196,7 +205,7 @@ impl Worker for System {
 
 /// Generate a backup filename. For a given file `/path/to/file`, the backup filename will be
 /// `/path/to/.file.oxidizr.bak`.
-fn backup_filename(file: &PathBuf) -> PathBuf {
+fn backup_filename(file: &Path) -> PathBuf {
     let mut backup_file = file.parent().unwrap_or(&PathBuf::from(".")).to_path_buf();
     backup_file.push(format!(
         ".{}.oxidizr.bak",
@@ -207,8 +216,8 @@ fn backup_filename(file: &PathBuf) -> PathBuf {
 
 /// Remove a file from the filesystem if it exists.
 fn remove_file_if_exists(file: &PathBuf) -> Result<()> {
-    if fs::exists(&file)? {
-        fs::remove_file(&file)?;
+    if fs::exists(file)? {
+        fs::remove_file(file)?;
     }
     Ok(())
 }

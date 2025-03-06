@@ -1,7 +1,7 @@
 use crate::utils::Worker;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
-use tracing::{info, warn};
+use tracing::info;
 use which::which;
 
 /// An experiment to install and configure a Rust-based replacement for a system utility.
@@ -35,17 +35,20 @@ impl<'a> UutilsExperiment<'a> {
     }
 
     /// Check if the system is compatible with the experiment.
-    fn check_compatible(&self) -> bool {
+    pub fn check_compatible(&self) -> bool {
         self.system.distribution().release >= self.first_supported_release
     }
 
+    /// Reports the first supported release for the experiment.
+    pub fn first_supported_release(&self) -> &str {
+        &self.first_supported_release
+    }
+
     /// Check if the package is installed.
-    fn check_installed(&self) -> bool {
+    pub fn check_installed(&self) -> bool {
         self.system.check_installed(&self.package).unwrap_or(false)
     }
-}
 
-impl UutilsExperiment<'_> {
     /// Report the name of the experiment.
     pub fn name(&self) -> String {
         self.name.clone()
@@ -53,16 +56,7 @@ impl UutilsExperiment<'_> {
 
     /// Enable the experiment by installing and configuring the package.
     pub fn enable(&self) -> Result<()> {
-        if !self.check_compatible() {
-            warn!(
-                "Skipping '{}'. Minimum supported release is {}.",
-                self.package, self.first_supported_release
-            );
-            return Ok(());
-        }
-
         info!("Installing and configuring {}", self.package);
-
         self.system.install_package(&self.package)?;
 
         let files = self.system.list_files(self.bin_directory.clone())?;
@@ -87,12 +81,8 @@ impl UutilsExperiment<'_> {
 
     /// Disable the experiment by removing the package and restoring the original files.
     pub fn disable(&self) -> Result<()> {
-        if !self.check_installed() {
-            warn!("{} not found, skipping restore", self.package);
-            return Ok(());
-        }
-
         info!("Removing {}", self.package);
+        self.system.remove_package(&self.package)?;
 
         let files = self.system.list_files(self.bin_directory.clone())?;
 
@@ -104,8 +94,6 @@ impl UutilsExperiment<'_> {
             };
             self.system.restore_file(existing)?;
         }
-
-        self.system.remove_package(&self.package)?;
 
         Ok(())
     }
@@ -120,14 +108,7 @@ mod tests {
     fn test_uutils_incompatible_distribution() {
         let runner = incompatible_runner();
         let coreutils = coreutils_fixture(&runner);
-
         assert!(!coreutils.check_compatible());
-
-        assert!(coreutils.enable().is_ok());
-        assert_eq!(runner.commands.clone().into_inner().len(), 0);
-        assert_eq!(runner.created_symlinks.clone().into_inner().len(), 0);
-        assert_eq!(runner.backed_up_files.clone().into_inner().len(), 0);
-        assert_eq!(runner.restored_files.clone().into_inner().len(), 0);
     }
 
     #[test]
@@ -191,19 +172,6 @@ mod tests {
             assert!(expected.contains(&(from.as_str(), to.as_str())));
         }
 
-        assert_eq!(runner.restored_files.clone().into_inner().len(), 0);
-    }
-
-    #[test]
-    fn test_uutils_restore_not_installed() {
-        let runner = MockSystem::default();
-        let coreutils = coreutils_fixture(&runner);
-
-        assert!(coreutils.disable().is_ok());
-
-        assert_eq!(runner.commands.clone().into_inner().len(), 0);
-        assert_eq!(runner.created_symlinks.clone().into_inner().len(), 0);
-        assert_eq!(runner.backed_up_files.clone().into_inner().len(), 0);
         assert_eq!(runner.restored_files.clone().into_inner().len(), 0);
     }
 

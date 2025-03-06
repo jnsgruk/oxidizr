@@ -19,3 +19,16 @@ execute: |
     ls -la /usr/bin | NOMATCH ".diff.oxidizr.bak"
     diff --help | MATCH "GNU"
   fi
+
+  apt list sudo-rs | NOMATCH installed
+
+  ls -la /usr/bin/sudo | NOMATCH "/usr/bin/sudo -> /usr/lib/cargo/bin/sudo"
+  ls -la /usr/bin | NOMATCH ".sudo.oxidizr.bak"
+  /usr/bin/sudo --version 2>&1 | NOMATCH "sudo-rs"
+
+  ls -la /usr/bin/su | NOMATCH "/usr/bin/su -> /usr/lib/cargo/bin/su"
+  ls -la /usr/bin | NOMATCH ".su.oxidizr.bak"
+  /usr/bin/su --version 2>&1 | NOMATCH "su-rs"
+
+  ls -la /usr/sbin/visudo | NOMATCH "/usr/sbin/visudo -> /usr/lib/cargo/bin/visudo"
+  ls -la /usr/sbin | NOMATCH ".visudo.oxidizr.bak"
