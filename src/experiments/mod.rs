@@ -28,31 +28,31 @@ impl Experiment<'_> {
     }
 }
 
-pub fn all_experiments<'a>(system: &'a impl Worker) -> Vec<UutilsExperiment<'a>> {
+pub fn all_experiments<'a>(system: &'a impl Worker) -> Vec<Experiment<'a>> {
     vec![
-        UutilsExperiment::<'a>::new(
+        Experiment::Uutils(UutilsExperiment::<'a>::new(
             "coreutils",
             system,
             "rust-coreutils",
             "24.04",
             Some(PathBuf::from("/usr/bin/coreutils")),
             PathBuf::from("/usr/lib/cargo/bin/coreutils"),
-        ),
-        UutilsExperiment::<'a>::new(
+        )),
+        Experiment::Uutils(UutilsExperiment::<'a>::new(
             "diffutils",
             system,
             "rust-diffutils",
             "24.10",
             Some(PathBuf::from("/usr/lib/cargo/bin/diffutils/diffutils")),
             PathBuf::from("/usr/lib/cargo/bin/diffutils"),
-        ),
-        UutilsExperiment::<'a>::new(
+        )),
+        Experiment::Uutils(UutilsExperiment::<'a>::new(
             "findutils",
             system,
             "rust-findutils",
             "24.04",
             None,
             PathBuf::from("/usr/lib/cargo/bin/findutils"),
-        ),
+        )),
     ]
 }

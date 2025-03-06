@@ -34,7 +34,7 @@ use std::process::exit;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
-use experiments::{all_experiments, UutilsExperiment};
+use experiments::{all_experiments, Experiment};
 use inquire::Confirm;
 use tracing::info;
 use tracing_subscriber::{fmt, prelude::*};
@@ -107,7 +107,7 @@ fn main() -> Result<()> {
 
     // Get the set of enabled experiments. If the user specified nothing, all experiments are
     // enabled.
-    let selected_experiments: Vec<UutilsExperiment<'_>> = all_experiments(&system)
+    let selected_experiments: Vec<Experiment<'_>> = all_experiments(&system)
         .into_iter()
         .filter(|e| args.experiments.contains(&e.name()))
         .collect();
@@ -152,7 +152,7 @@ fn confirm_or_exit(yes: bool) {
 }
 
 /// Enables selected experiments
-fn enable(experiments: Vec<UutilsExperiment>) -> Result<()> {
+fn enable(experiments: Vec<Experiment>) -> Result<()> {
     for e in experiments.iter() {
         e.enable()?;
     }
@@ -160,7 +160,7 @@ fn enable(experiments: Vec<UutilsExperiment>) -> Result<()> {
 }
 
 // Disable selected experiments
-fn disable(experiments: Vec<UutilsExperiment<'_>>) -> Result<()> {
+fn disable(experiments: Vec<Experiment<'_>>) -> Result<()> {
     for e in experiments.iter() {
         e.disable()?;
     }
