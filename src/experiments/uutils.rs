@@ -140,7 +140,7 @@ mod tests {
             ("/usr/bin/coreutils", "/usr/bin/date"),
         ];
 
-        assert!(created_symlinks.len() == 2);
+        assert_eq!(created_symlinks.len(), 2);
         for (from, to) in created_symlinks.iter() {
             assert!(expected.contains(&(from.as_str(), to.as_str())));
         }
@@ -172,7 +172,7 @@ mod tests {
             ("/usr/lib/cargo/bin/findutils/xargs", "/usr/bin/xargs"),
         ];
 
-        assert!(created_symlinks.len() == 2);
+        assert_eq!(created_symlinks.len(), 2);
         for (from, to) in created_symlinks.iter() {
             assert!(expected.contains(&(from.as_str(), to.as_str())));
         }
