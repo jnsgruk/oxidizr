@@ -4,9 +4,11 @@ execute: |
 
   apt list rust-coreutils | MATCH installed
   while read p; do
-    ls -la "/usr/bin/$p"| MATCH "/usr/bin/$p -> /usr/bin/coreutils"
-    ls -la "/usr/bin/.$p.oxidizr.bak" || echo "No backup file for /usr/bin/$p"
-    /usr/bin/$p --help | NOMATCH "https://www.gnu.org/software/coreutils"
+    util_path="$(which $p)"
+    util_dir="$(dirname "$util_path")"
+    ls -la "$util_path"| MATCH "$util_path -> /usr/bin/coreutils"
+    ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
+    $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
   done < ../rust-coreutils-bins.txt
 
   apt list rust-findutils | NOMATCH installed

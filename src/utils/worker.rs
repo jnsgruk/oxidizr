@@ -148,7 +148,6 @@ impl Worker for System {
     fn replace_file_with_symlink(&self, source: PathBuf, target: PathBuf) -> Result<()> {
         if fs::exists(&target)? {
             if target.is_symlink() {
-                // TODO: Check the symlink target
                 trace!("Skipping {}, symlink already exists", target.display());
                 return Ok(());
             }

@@ -1,7 +1,8 @@
 use crate::utils::Worker;
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::{info, warn};
+use which::which;
 
 /// An experiment to install and configure a Rust-based replacement for a system utility.
 pub struct UutilsExperiment<'a> {
@@ -68,7 +69,10 @@ impl UutilsExperiment<'_> {
 
         for f in files {
             let filename = f.file_name().unwrap();
-            let existing = PathBuf::from("/usr/bin").join(filename);
+            let existing = match which(filename) {
+                Ok(path) => path,
+                Err(_) => Path::new("/usr/bin").join(filename),
+            };
 
             if let Some(unified_binary) = &self.unified_binary {
                 self.system
@@ -94,7 +98,10 @@ impl UutilsExperiment<'_> {
 
         for f in files {
             let filename = f.file_name().unwrap();
-            let existing = PathBuf::from("/usr/bin").join(filename);
+            let existing = match which(filename) {
+                Ok(path) => path,
+                Err(_) => Path::new("/usr/bin").join(filename),
+            };
             self.system.restore_file(existing)?;
         }
 
