@@ -1,49 +1,58 @@
 mod uutils;
-
-use std::{path::PathBuf, sync::Arc};
-
+use crate::utils::Worker;
+use anyhow::Result;
+use std::path::PathBuf;
 pub use uutils::UutilsExperiment;
 
-use anyhow::Result;
-
-use crate::utils::Worker;
-
-pub trait Experiment {
-    fn enable(&self) -> Result<()>;
-    fn disable(&self) -> Result<()>;
+pub enum Experiment<'a> {
+    Uutils(UutilsExperiment<'a>),
 }
 
-pub fn all_experiments(system: Arc<dyn Worker>) -> Vec<(String, Box<dyn Experiment>)> {
+impl Experiment<'_> {
+    pub fn name(&self) -> String {
+        match self {
+            Experiment::Uutils(uutils) => uutils.name(),
+        }
+    }
+
+    pub fn enable(&self) -> Result<()> {
+        match self {
+            Experiment::Uutils(uutils) => uutils.enable(),
+        }
+    }
+
+    pub fn disable(&self) -> Result<()> {
+        match self {
+            Experiment::Uutils(uutils) => uutils.disable(),
+        }
+    }
+}
+
+pub fn all_experiments<'a>(system: &'a impl Worker) -> Vec<UutilsExperiment<'a>> {
     vec![
-        (
-            String::from("coreutils"),
-            Box::new(UutilsExperiment::new(
-                system.clone(),
-                "rust-coreutils",
-                "24.04",
-                Some(PathBuf::from("/usr/bin/coreutils")),
-                PathBuf::from("/usr/lib/cargo/bin/coreutils"),
-            )),
+        UutilsExperiment::<'a>::new(
+            "coreutils",
+            system,
+            "rust-coreutils",
+            "24.04",
+            Some(PathBuf::from("/usr/bin/coreutils")),
+            PathBuf::from("/usr/lib/cargo/bin/coreutils"),
         ),
-        (
-            String::from("diffutils"),
-            Box::new(UutilsExperiment::new(
-                system.clone(),
-                "rust-diffutils",
-                "24.10",
-                Some(PathBuf::from("/usr/lib/cargo/bin/diffutils/diffutils")),
-                PathBuf::from("/usr/lib/cargo/bin/diffutils"),
-            )),
+        UutilsExperiment::<'a>::new(
+            "diffutils",
+            system,
+            "rust-diffutils",
+            "24.10",
+            Some(PathBuf::from("/usr/lib/cargo/bin/diffutils/diffutils")),
+            PathBuf::from("/usr/lib/cargo/bin/diffutils"),
         ),
-        (
-            String::from("findutils"),
-            Box::new(UutilsExperiment::new(
-                system.clone(),
-                "rust-findutils",
-                "24.04",
-                None,
-                PathBuf::from("/usr/lib/cargo/bin/findutils"),
-            )),
+        UutilsExperiment::<'a>::new(
+            "findutils",
+            system,
+            "rust-findutils",
+            "24.04",
+            None,
+            PathBuf::from("/usr/lib/cargo/bin/findutils"),
         ),
     ]
 }

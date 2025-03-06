@@ -1,27 +1,28 @@
 use crate::utils::Worker;
 use anyhow::Result;
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
 use tracing::{info, warn};
 
-use super::Experiment;
-
-pub struct UutilsExperiment {
-    system: Arc<dyn Worker>,
+pub struct UutilsExperiment<'a> {
+    name: String,
+    system: &'a dyn Worker,
     package: String,
     first_supported_release: String,
     unified_binary: Option<PathBuf>,
     bin_directory: PathBuf,
 }
 
-impl UutilsExperiment {
+impl<'a> UutilsExperiment<'a> {
     pub fn new(
-        system: Arc<dyn Worker>,
+        name: &str,
+        system: &'a dyn Worker,
         package: &str,
         first_supported_release: &str,
         unified_binary: Option<PathBuf>,
         bin_directory: PathBuf,
     ) -> Self {
         Self {
+            name: name.to_string(),
             system,
             package: package.to_string(),
             first_supported_release: first_supported_release.to_string(),
@@ -39,8 +40,12 @@ impl UutilsExperiment {
     }
 }
 
-impl Experiment for UutilsExperiment {
-    fn enable(&self) -> Result<()> {
+impl UutilsExperiment<'_> {
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn enable(&self) -> Result<()> {
         if !self.check_compatible() {
             warn!(
                 "Skipping '{}'. Minimum supported release is {}.",
@@ -70,7 +75,7 @@ impl Experiment for UutilsExperiment {
         Ok(())
     }
 
-    fn disable(&self) -> Result<()> {
+    pub fn disable(&self) -> Result<()> {
         if !self.check_installed() {
             warn!("{} not found, skipping restore", self.package);
             return Ok(());
@@ -100,7 +105,7 @@ mod tests {
     #[test]
     fn test_uutils_incompatible_distribution() {
         let runner = incompatible_runner();
-        let coreutils = coreutils_fixture(runner.clone());
+        let coreutils = coreutils_fixture(&runner);
 
         assert!(!coreutils.check_compatible());
 
@@ -114,7 +119,7 @@ mod tests {
     #[test]
     fn test_uutils_install_success_unified_binary() {
         let runner = coreutils_compatible_runner();
-        let coreutils = coreutils_fixture(runner.clone());
+        let coreutils = coreutils_fixture(&runner);
 
         assert!(coreutils.enable().is_ok());
 
@@ -146,7 +151,7 @@ mod tests {
     #[test]
     fn test_uutils_install_success_non_unified_binary() {
         let runner = findutils_compatible_runner();
-        let findutils = findutils_fixture(runner.clone());
+        let findutils = findutils_fixture(&runner);
 
         assert!(findutils.enable().is_ok());
 
@@ -177,8 +182,8 @@ mod tests {
 
     #[test]
     fn test_uutils_restore_not_installed() {
-        let runner = Arc::new(MockSystem::default());
-        let coreutils = coreutils_fixture(runner.clone());
+        let runner = MockSystem::default();
+        let coreutils = coreutils_fixture(&runner);
 
         assert!(coreutils.disable().is_ok());
 
@@ -193,7 +198,7 @@ mod tests {
         let runner = coreutils_compatible_runner();
         runner.mock_install_package("rust-coreutils");
 
-        let coreutils = coreutils_fixture(runner.clone());
+        let coreutils = coreutils_fixture(&runner);
         assert!(coreutils.disable().is_ok());
 
         assert_eq!(runner.created_symlinks.clone().into_inner().len(), 0);
@@ -212,9 +217,10 @@ mod tests {
         }
     }
 
-    fn coreutils_fixture(system: Arc<MockSystem>) -> UutilsExperiment {
+    fn coreutils_fixture(system: &MockSystem) -> UutilsExperiment {
         UutilsExperiment::new(
-            system.clone(),
+            "coreutils",
+            system,
             "rust-coreutils",
             "24.04",
             Some(PathBuf::from("/usr/bin/coreutils")),
@@ -222,8 +228,8 @@ mod tests {
         )
     }
 
-    fn coreutils_compatible_runner() -> Arc<MockSystem> {
-        let runner = Arc::new(MockSystem::default());
+    fn coreutils_compatible_runner() -> MockSystem {
+        let runner = MockSystem::default();
         runner.mock_files(vec![
             ("/usr/lib/cargo/bin/coreutils/date", ""),
             ("/usr/lib/cargo/bin/coreutils/sort", ""),
@@ -233,9 +239,10 @@ mod tests {
         runner
     }
 
-    fn findutils_fixture(system: Arc<MockSystem>) -> UutilsExperiment {
+    fn findutils_fixture(system: &MockSystem) -> UutilsExperiment {
         UutilsExperiment::new(
-            system.clone(),
+            "findutils",
+            system,
             "rust-findutils",
             "24.04",
             None,
@@ -243,8 +250,8 @@ mod tests {
         )
     }
 
-    fn findutils_compatible_runner() -> Arc<MockSystem> {
-        let runner = Arc::new(MockSystem::default());
+    fn findutils_compatible_runner() -> MockSystem {
+        let runner = MockSystem::default();
         runner.mock_files(vec![
             ("/usr/lib/cargo/bin/findutils/find", ""),
             ("/usr/lib/cargo/bin/findutils/xargs", ""),
@@ -254,10 +261,10 @@ mod tests {
         runner
     }
 
-    fn incompatible_runner() -> Arc<MockSystem> {
-        Arc::new(MockSystem::new(Distribution {
+    fn incompatible_runner() -> MockSystem {
+        MockSystem::new(Distribution {
             id: "Ubuntu".to_string(),
             release: "20.04".to_string(),
-        }))
+        })
     }
 }

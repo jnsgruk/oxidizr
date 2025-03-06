@@ -29,12 +29,12 @@
 pub mod experiments;
 pub mod utils;
 
-use std::{process::exit, sync::Arc};
+use std::process::exit;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
-use experiments::{all_experiments, Experiment};
+use experiments::{all_experiments, UutilsExperiment};
 use inquire::Confirm;
 use tracing::info;
 use tracing_subscriber::{fmt, prelude::*};
@@ -97,7 +97,7 @@ fn main() -> Result<()> {
         .init();
 
     // Initialise the system, gather system information.
-    let system = Arc::new(System::new()?);
+    let system = System::new()?;
 
     // Exit if the application is run on a non-Ubuntu machine.
     anyhow::ensure!(
@@ -107,7 +107,10 @@ fn main() -> Result<()> {
 
     // Get the set of enabled experiments. If the user specified nothing, all experiments are
     // enabled.
-    let selected_experiments = enabled_experiments(system.clone(), args.experiments);
+    let selected_experiments: Vec<UutilsExperiment<'_>> = all_experiments(&system)
+        .into_iter()
+        .filter(|e| args.experiments.contains(&e.name()))
+        .collect();
 
     // Handle subcommands
     match args.cmd {
@@ -124,25 +127,6 @@ fn main() -> Result<()> {
             disable(selected_experiments)
         }
     }
-}
-
-/// Returns a list of initialised experiments that are enabled, either by the default options
-/// or by the user issuing `--experiments` at the command-line.
-fn enabled_experiments(system: Arc<dyn Worker>, args: Vec<String>) -> Vec<Box<dyn Experiment>> {
-    // Fetch the full list of available experiments
-    let all_experiments = all_experiments(system.clone());
-
-    // Filter the list of experiments by what the user selected
-    all_experiments
-        .into_iter()
-        .filter_map(|(name, experiment)| {
-            if args.contains(&name) {
-                Some(experiment)
-            } else {
-                None
-            }
-        })
-        .collect()
 }
 
 /// Display a confirmation prompt to the user asking whether they'd like to continue.
@@ -168,7 +152,7 @@ fn confirm_or_exit(yes: bool) {
 }
 
 /// Enables selected experiments
-fn enable(experiments: Vec<Box<dyn Experiment>>) -> Result<()> {
+fn enable(experiments: Vec<UutilsExperiment>) -> Result<()> {
     for e in experiments.iter() {
         e.enable()?;
     }
@@ -176,7 +160,7 @@ fn enable(experiments: Vec<Box<dyn Experiment>>) -> Result<()> {
 }
 
 // Disable selected experiments
-fn disable(experiments: Vec<Box<dyn Experiment>>) -> Result<()> {
+fn disable(experiments: Vec<UutilsExperiment<'_>>) -> Result<()> {
     for e in experiments.iter() {
         e.disable()?;
     }
