@@ -81,13 +81,13 @@ enum Commands {
 }
 
 fn main() -> Result<()> {
+    let args = Args::parse();
+
     // The application must run as root - exit immediately if it's not.
     anyhow::ensure!(
         uzers::get_current_uid() == 0,
         "This program must be run as root"
     );
-
-    let args = Args::parse();
 
     // Initialise the tracing system to enable nice logging. Take into account the verbosity
     // specified at the command line.
