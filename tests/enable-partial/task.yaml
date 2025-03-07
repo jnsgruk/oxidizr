@@ -1,19 +1,14 @@
-summary: Test installing packages
+summary: Test selectively installing packages
 execute: |
+  source ${SPREAD_PATH}/tests/lib/uutils.sh
+  source ${SPREAD_PATH}/tests/lib/sudo-rs.sh
+
   oxidizr enable --yes --experiments coreutils
 
-  apt list rust-coreutils | MATCH installed
-  while read p; do
-    util_path="$(which $p)"
-    util_dir="$(dirname "$util_path")"
-    ls -la "$util_path"| MATCH "$util_path -> /usr/bin/coreutils"
-    ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
-    $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
-  done < ../rust-coreutils-bins.txt
-
-  apt list rust-findutils | NOMATCH installed
-  apt list rust-diffutils | NOMATCH installed
-  apt list sudo-rs | NOMATCH installed
+  ensure_coreutils_installed
+  ensure_findutils_absent
+  ensure_diffutils_absent
+  ensure_sudors_absent
 
 restore: |
   if [[ -z "${CI:-}" ]]; then

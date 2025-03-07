@@ -1,20 +1,10 @@
-summary: Test installing packages
+summary: Test selectively disabling experiments
+execute: |
+  source ${SPREAD_PATH}/tests/lib/uutils.sh
+  source ${SPREAD_PATH}/tests/lib/sudo-rs.sh
+
   oxidizr enable --yes
   oxidizr disable --yes --experiments coreutils
 
-  apt list rust-coreutils | MATCH installed
-  ls -la /usr/bin/date | MATCH "/usr/bin/date -> /usr/bin/coreutils"
-  ls -la /usr/bin | MATCH ".date.oxidizr.bak"
-  date --help | NOMATCH "GNU"
-
-  apt list rust-findutils | NOMATCH installed
-  ls -la /usr/bin/find | NOMATCH "/usr/bin/find -> /usr/lib/cargo/bin/findutils/find"
-  ls -la /usr/bin | NOMATCH ".find.oxidizr.bak"
-  find --help | MATCH "GNU"
-
-  if [[ "$(lsb_release -rs)" != "24.04" ]]; then
-  apt list rust-diffutils | NOMATCH installed
-  ls -la /usr/bin/diff | NOMATCH "/usr/bin/diff -> /usr/lib/cargo/bin/diffutils/diff"
-  ls -la /usr/bin | NOMATCH ".diff.oxidizr.bak"
-  diff --help | MATCH "GNU"
-  fi
+  ensure_coreutils_absent
+  ensure_sudors_installed

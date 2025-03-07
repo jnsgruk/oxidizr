@@ -1,34 +1,13 @@
-summary: Test disabling experiments
+summary: Test disabling all experiments
 execute: |
+  source ${SPREAD_PATH}/tests/lib/uutils.sh
+  source ${SPREAD_PATH}/tests/lib/sudo-rs.sh
+
   oxidizr enable --yes --all
   oxidizr disable --yes --all
 
-  apt list rust-coreutils | NOMATCH installed
-  ls -la /usr/bin/date | NOMATCH "/usr/bin/date -> /usr/bin/coreutils"
-  ls -la /usr/bin | NOMATCH ".date.oxidizr.bak"
-  date --help | MATCH "GNU"
+  ensure_coreutils_absent
+  ensure_findutils_absent
+  ensure_diffutils_absent
 
-  apt list rust-findutils | NOMATCH installed
-  ls -la /usr/bin/find | NOMATCH "/usr/bin/find -> /usr/lib/cargo/bin/findutils/find"
-  ls -la /usr/bin | NOMATCH ".find.oxidizr.bak"
-  find --help | MATCH "GNU"
-
-  if [[ "$(lsb_release -rs)" != "24.04" ]]; then
-    apt list rust-diffutils | NOMATCH installed
-    ls -la /usr/bin/diff | NOMATCH "/usr/bin/diff -> /usr/lib/cargo/bin/diffutils/diff"
-    ls -la /usr/bin | NOMATCH ".diff.oxidizr.bak"
-    diff --help | MATCH "GNU"
-  fi
-
-  apt list sudo-rs | NOMATCH installed
-
-  ls -la /usr/bin/sudo | NOMATCH "/usr/bin/sudo -> /usr/lib/cargo/bin/sudo"
-  ls -la /usr/bin | NOMATCH ".sudo.oxidizr.bak"
-  /usr/bin/sudo --version 2>&1 | NOMATCH "sudo-rs"
-
-  ls -la /usr/bin/su | NOMATCH "/usr/bin/su -> /usr/lib/cargo/bin/su"
-  ls -la /usr/bin | NOMATCH ".su.oxidizr.bak"
-  /usr/bin/su --version 2>&1 | NOMATCH "su-rs"
-
-  ls -la /usr/sbin/visudo | NOMATCH "/usr/sbin/visudo -> /usr/lib/cargo/bin/visudo"
-  ls -la /usr/sbin | NOMATCH ".visudo.oxidizr.bak"
+  ensure_sudors_absent

@@ -1,48 +1,14 @@
-summary: Test enabling default experiments
+summary: Test enabling all experiments
 execute: |
+  source ${SPREAD_PATH}/tests/lib/uutils.sh
+  source ${SPREAD_PATH}/tests/lib/sudo-rs.sh
+
   oxidizr enable --yes --all
 
-  apt list rust-coreutils | MATCH installed
-  while read p; do
-    util_path="$(which $p)"
-    util_dir="$(dirname "$util_path")"
-    ls -la "$util_path"| MATCH "$util_path -> /usr/bin/coreutils"
-    ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
-    $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
-  done < ../rust-coreutils-bins.txt
-
-  apt list rust-findutils | MATCH installed
-  while read p; do
-    util_path="$(which $p)"
-    util_dir="$(dirname "$util_path")"
-    ls -la "$util_path"| MATCH "$util_path -> /usr/lib/cargo/bin/findutils/$p"
-    ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
-    $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
-  done < ../rust-findutils-bins.txt
-
-  if [[ "$(lsb_release -rs)" != "24.04" ]]; then
-    apt list rust-diffutils | MATCH installed
-    while read p; do
-      util_path="$(which $p)"
-      util_dir="$(dirname "$util_path")"
-      ls -la "$util_path"| MATCH "$util_path -> /usr/lib/cargo/bin/diffutils/$p"
-      ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
-      $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
-    done < ../rust-diffutils-bins.txt
-  fi
-
-  apt list sudo-rs | MATCH installed
-
-  ls -la /usr/bin/sudo | MATCH "/usr/bin/sudo -> /usr/lib/cargo/bin/sudo"
-  ls -la /usr/bin | MATCH ".sudo.oxidizr.bak"
-  /usr/bin/sudo --version 2>&1 | MATCH "sudo-rs"
-
-  ls -la /usr/bin/su | MATCH "/usr/bin/su -> /usr/lib/cargo/bin/su"
-  ls -la /usr/bin | MATCH ".su.oxidizr.bak"
-  /usr/bin/su --version 2>&1 | MATCH "su-rs"
-
-  ls -la /usr/sbin/visudo | MATCH "/usr/sbin/visudo -> /usr/lib/cargo/bin/visudo"
-  ls -la /usr/sbin | MATCH ".visudo.oxidizr.bak"
+  ensure_coreutils_installed
+  ensure_findutils_installed
+  ensure_diffutils_installed
+  ensure_sudors_installed
 
 restore: |
   if [[ -z "${CI:-}" ]]; then

@@ -14,7 +14,7 @@ backends:
       lxc launch \
         "${SPREAD_SYSTEM/-/:}" \
         "${CONTAINER_NAME}" \
-        -c user.user-data="$(sed "s|SPREAD_PASSWORD|$SPREAD_PASSWORD|g" tests/cloud-config.yaml)"
+        -c user.user-data="$(sed "s|SPREAD_PASSWORD|$SPREAD_PASSWORD|g" tests/lib/cloud-config.yaml)"
 
       # Wait for the spread user
       while ! lxc exec "${CONTAINER_NAME}" -- id -u spread &>/dev/null; do sleep 0.5; done
@@ -60,5 +60,3 @@ prepare: |
   fi
 
   install -Dm755 "$PWD/target/debug/oxidizr" /usr/bin/oxidizr
-
-  pushd "${SPREAD_PATH}/${SPREAD_TASK}"
