@@ -23,6 +23,24 @@ jobs:
     name: Spread Matrix
     uses: ./.github/workflows/_spread-matrix.yml
 
+  goreleaser-snapshot:
+    name: Goreleaser Snapshot
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup goreleaser
+        run: |
+          sudo snap install --classic goreleaser
+
+      - name: Build oxidizr
+        id: build
+        run: |
+          goreleaser build --snapshot --clean --verbose
+
   spread-tests:
     name: Spread tests
     uses: ./.github/workflows/_spread.yml
