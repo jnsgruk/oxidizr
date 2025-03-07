@@ -1,12 +1,24 @@
 summary: Test disabling experiments
 execute: |
-  oxidizr enable --yes
-  oxidizr disable --yes
+  oxidizr enable --yes --all
+  oxidizr disable --yes --all
 
   apt list rust-coreutils | NOMATCH installed
   ls -la /usr/bin/date | NOMATCH "/usr/bin/date -> /usr/bin/coreutils"
   ls -la /usr/bin | NOMATCH ".date.oxidizr.bak"
   date --help | MATCH "GNU"
+
+  apt list rust-findutils | NOMATCH installed
+  ls -la /usr/bin/find | NOMATCH "/usr/bin/find -> /usr/lib/cargo/bin/findutils/find"
+  ls -la /usr/bin | NOMATCH ".find.oxidizr.bak"
+  find --help | MATCH "GNU"
+
+  if [[ "$(lsb_release -rs)" != "24.04" ]]; then
+    apt list rust-diffutils | NOMATCH installed
+    ls -la /usr/bin/diff | NOMATCH "/usr/bin/diff -> /usr/lib/cargo/bin/diffutils/diff"
+    ls -la /usr/bin | NOMATCH ".diff.oxidizr.bak"
+    diff --help | MATCH "GNU"
+  fi
 
   apt list sudo-rs | NOMATCH installed
 

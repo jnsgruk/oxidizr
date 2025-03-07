@@ -9,10 +9,11 @@ It currently supports the following experiments:
 - [uutils diffutils](https://github.com/uutils/diffutils)
 - [sudo-rs](https://github.com/trifectatechfoundation/sudo-rs)
 
+By default, the `coreutils` and `sudo-rs` experiments are enabled because they're the most complete, stable experiments. Others can be toggled using command line arguments shown below.
+
 ## Installation
 
-> [!WARNING]
-> `oxidizr` is an experimental tool to help developers and tinkerers play with relatively new alternatives to core system utilities. It may cause a loss of data, or prevent your system from booting, so use with caution!
+> [!WARNING] > `oxidizr` is an experimental tool to help developers and tinkerers play with relatively new alternatives to core system utilities. It may cause a loss of data, or prevent your system from booting, so use with caution!
 
 You can install `oxidizr` using `cargo`:
 
@@ -47,10 +48,13 @@ Options:
   -y, --yes
           Skip confirmation prompts
 
+  -a, --all
+          Enable/disable all known experiments
+
   -e, --experiments <EXPERIMENTS>...
           Select experiments to enable or disable
 
-          [default: coreutils findutils diffutils sudo-rs]
+          [default: coreutils sudo-rs]
 
   -h, --help
           Print help (see a summary with '-h')
@@ -62,6 +66,8 @@ Options:
 ### Example
 
 ```bash
+# Enable all experiments
+sudo oxidizr enable --ll
 # Enable just coreutils and findutils experiments
 sudo oxidizr enable --experiments coreutils findutils
 # Enable just coreutils experiment without prompting with debug logging enabled

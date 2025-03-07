@@ -1,6 +1,6 @@
 summary: Test enabling default experiments
 execute: |
-  oxidizr enable --yes
+  oxidizr enable --yes --all
 
   apt list rust-coreutils | MATCH installed
   while read p; do
@@ -10,6 +10,26 @@ execute: |
     ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
     $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
   done < ../rust-coreutils-bins.txt
+
+  apt list rust-findutils | MATCH installed
+  while read p; do
+    util_path="$(which $p)"
+    util_dir="$(dirname "$util_path")"
+    ls -la "$util_path"| MATCH "$util_path -> /usr/lib/cargo/bin/findutils/$p"
+    ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
+    $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
+  done < ../rust-findutils-bins.txt
+
+  if [[ "$(lsb_release -rs)" != "24.04" ]]; then
+    apt list rust-diffutils | MATCH installed
+    while read p; do
+      util_path="$(which $p)"
+      util_dir="$(dirname "$util_path")"
+      ls -la "$util_path"| MATCH "$util_path -> /usr/lib/cargo/bin/diffutils/$p"
+      ls -la "$util_dir/.$p.oxidizr.bak" || echo "No backup file for $util_path"
+      $util_path --help | NOMATCH "https://www.gnu.org/software/coreutils"
+    done < ../rust-diffutils-bins.txt
+  fi
 
   apt list sudo-rs | MATCH installed
 
@@ -26,5 +46,5 @@ execute: |
 
 restore: |
   if [[ -z "${CI:-}" ]]; then
-    oxidizr disable --yes
+    oxidizr disable --yes --all
   fi

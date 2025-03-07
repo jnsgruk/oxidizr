@@ -36,7 +36,7 @@ use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use experiments::{all_experiments, Experiment};
 use inquire::Confirm;
-use tracing::info;
+use tracing::{info, warn};
 use tracing_subscriber::{fmt, prelude::*};
 use utils::{System, Worker};
 
@@ -61,7 +61,16 @@ struct Args {
     #[arg(
         short,
         long,
-        default_values_t = vec!["coreutils".to_string(), "findutils".to_string(), "diffutils".to_string(), "sudo-rs".to_string()],
+        default_value_t = false,
+        global = true,
+        help = "Enable/disable all known experiments"
+    )]
+    all: bool,
+
+    #[arg(
+        short,
+        long,
+        default_values_t = vec!["coreutils".to_string(), "sudo-rs".to_string()],
         global = true,
         num_args = 1..,
         help = "Select experiments to enable or disable"
@@ -105,12 +114,18 @@ fn main() -> Result<()> {
         "This program only supports Ubuntu"
     );
 
-    // Get the set of enabled experiments. If the user specified nothing, all experiments are
-    // enabled.
-    let selected_experiments: Vec<Experiment<'_>> = all_experiments(&system)
-        .into_iter()
-        .filter(|e| args.experiments.contains(&e.name()))
-        .collect();
+    let selected_experiments: Vec<Experiment<'_>> = match args.all {
+        true => {
+            if args.experiments.len() > 0 {
+                warn!("Ignoring --experiments flag as --all is set");
+            }
+            all_experiments(&system)
+        }
+        false => all_experiments(&system)
+            .into_iter()
+            .filter(|e| args.experiments.contains(&e.name()))
+            .collect(),
+    };
 
     // Handle subcommands
     match args.cmd {

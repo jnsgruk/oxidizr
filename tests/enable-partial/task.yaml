@@ -13,6 +13,7 @@ execute: |
 
   apt list rust-findutils | NOMATCH installed
   apt list rust-diffutils | NOMATCH installed
+  apt list sudo-rs | NOMATCH installed
 
 restore: |
   if [[ -z "${CI:-}" ]]; then
