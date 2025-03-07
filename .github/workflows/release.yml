@@ -43,12 +43,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Rust
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config
-          sudo snap install --classic rustup
-
       - name: Setup goreleaser
         run: |
           sudo snap install --classic goreleaser
