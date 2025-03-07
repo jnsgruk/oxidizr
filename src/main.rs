@@ -70,9 +70,9 @@ struct Args {
     #[arg(
         short,
         long,
-        default_values_t = vec!["coreutils".to_string(), "sudo-rs".to_string()],
         global = true,
         num_args = 1..,
+        default_values_t = default_experiments(),
         help = "Select experiments to enable or disable"
     )]
     experiments: Vec<String>,
@@ -114,18 +114,8 @@ fn main() -> Result<()> {
         "This program only supports Ubuntu"
     );
 
-    let selected_experiments: Vec<Experiment<'_>> = match args.all {
-        true => {
-            if args.experiments.len() > 0 {
-                warn!("Ignoring --experiments flag as --all is set");
-            }
-            all_experiments(&system)
-        }
-        false => all_experiments(&system)
-            .into_iter()
-            .filter(|e| args.experiments.contains(&e.name()))
-            .collect(),
-    };
+    // Get selected experiments from the command line arguments
+    let selected = get_selected_experiments(args.all, args.experiments.clone(), &system);
 
     // Handle subcommands
     match args.cmd {
@@ -135,11 +125,47 @@ fn main() -> Result<()> {
             info!("Updating apt package cache");
             system.update_package_lists()?;
 
-            enable(selected_experiments)
+            enable(selected)
         }
         Commands::Disable => {
             confirm_or_exit(args.yes);
-            disable(selected_experiments)
+            disable(selected)
+        }
+    }
+}
+
+/// Get selected experiments from the command line arguments.
+fn get_selected_experiments<'a>(
+    all: bool,
+    selected: Vec<String>,
+    system: &'a impl Worker,
+) -> Vec<Experiment<'a>> {
+    let all_experiments = all_experiments(system);
+
+    match all {
+        true => {
+            let mut selected = selected.clone();
+            selected.sort();
+            if selected.len() > 0 && selected != default_experiments() {
+                warn!("Ignoring --experiments flag as --all is set");
+            }
+
+            all_experiments
+        }
+        false => {
+            let default_experiments = vec!["coreutils".to_string(), "sudo-rs".to_string()];
+
+            // If no experiments are selected, default to coreutils and sudo-rs
+            let filter = match selected.len() {
+                0 => default_experiments,
+                _ => selected,
+            };
+
+            // Filter the list of all experiments to only include the selected ones
+            all_experiments
+                .into_iter()
+                .filter(|e| filter.contains(&e.name()))
+                .collect()
         }
     }
 }
@@ -180,4 +206,11 @@ fn disable(experiments: Vec<Experiment<'_>>) -> Result<()> {
         e.disable()?;
     }
     Ok(())
+}
+
+// Default experiments to enable if none are specified
+fn default_experiments() -> Vec<String> {
+    let mut defaults = vec!["coreutils".to_string(), "sudo-rs".to_string()];
+    defaults.sort();
+    defaults
 }
