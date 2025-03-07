@@ -8,3 +8,8 @@ execute: |
 
   ensure_coreutils_absent
   ensure_sudors_installed
+
+restore: |
+  if [[ -z "${CI:-}" ]]; then
+    oxidizr disable --yes --all
+  fi

@@ -10,5 +10,5 @@ execute: |
 
 restore: |
   if [[ -z "${CI:-}" ]]; then
-    oxidizr disable --yes
+    oxidizr disable --yes --all
   fi
