@@ -70,7 +70,7 @@ Options:
 
 ```bash
 # Enable all experiments
-sudo oxidizr enable --ll
+sudo oxidizr enable --all
 # Enable just coreutils and findutils experiments
 sudo oxidizr enable --experiments coreutils findutils
 # Enable just coreutils experiment without prompting with debug logging enabled

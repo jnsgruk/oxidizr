@@ -6,8 +6,7 @@ before:
     - cargo install cross --git https://github.com/cross-rs/cross
 
 builds:
-  - id: "oxidizr"
-    builder: rust
+  - builder: rust
     targets:
       - x86_64-unknown-linux-gnu
       - aarch64-unknown-linux-gnu
@@ -15,11 +14,13 @@ builds:
     command: build
 
 archives:
-  - builds:
-      - default
-    files:
-      - "LICENSE*"
-      - "README*"
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
 
 checksum:
   name_template: "checksums.txt"
@@ -36,5 +37,5 @@ changelog:
   use: github
   filters:
     exclude:
-      - "^test:"
-      - "^ci:"
+      - "^test"
+      - "^ci"
