@@ -102,7 +102,7 @@ impl<'a> UutilsExperiment<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::{Distribution, MockSystem};
+    use crate::utils::{vecs_eq, Distribution, MockSystem};
 
     #[test]
     fn test_uutils_incompatible_distribution() {
@@ -122,24 +122,22 @@ mod tests {
         assert_eq!(commands, &["apt-get install -y rust-coreutils"]);
 
         let backed_up_files = runner.backed_up_files.clone().into_inner();
-        let expected = ["/usr/bin/date", "/usr/bin/sort"];
-
-        assert_eq!(backed_up_files.len(), 2);
-        for f in backed_up_files.iter() {
-            assert!(expected.contains(&f.as_str()));
-        }
+        let expected = vec!["/usr/bin/date".to_string(), "/usr/bin/sort".to_string()];
+        assert!(vecs_eq(backed_up_files, expected));
 
         let created_symlinks = runner.created_symlinks.clone().into_inner();
-        let expected = [
-            ("/usr/bin/coreutils", "/usr/bin/sort"),
-            ("/usr/bin/coreutils", "/usr/bin/date"),
+        let expected = vec![
+            (
+                "/usr/bin/coreutils".to_string(),
+                "/usr/bin/sort".to_string(),
+            ),
+            (
+                "/usr/bin/coreutils".to_string(),
+                "/usr/bin/date".to_string(),
+            ),
         ];
 
-        assert_eq!(created_symlinks.len(), 2);
-        for (from, to) in created_symlinks.iter() {
-            assert!(expected.contains(&(from.as_str(), to.as_str())));
-        }
-
+        assert!(vecs_eq(created_symlinks, expected));
         assert_eq!(runner.restored_files.clone().into_inner().len(), 0);
     }
 
@@ -154,24 +152,22 @@ mod tests {
         assert_eq!(commands, &["apt-get install -y rust-findutils"]);
 
         let backed_up_files = runner.backed_up_files.clone().into_inner();
-        let expected = ["/usr/bin/find", "/usr/bin/xargs"];
-
-        assert_eq!(backed_up_files.len(), 2);
-        for f in backed_up_files.iter() {
-            assert!(expected.contains(&f.as_str()));
-        }
+        let expected = vec!["/usr/bin/find".to_string(), "/usr/bin/xargs".to_string()];
+        assert!(vecs_eq(backed_up_files, expected));
 
         let created_symlinks = runner.created_symlinks.clone().into_inner();
-        let expected = [
-            ("/usr/lib/cargo/bin/findutils/find", "/usr/bin/find"),
-            ("/usr/lib/cargo/bin/findutils/xargs", "/usr/bin/xargs"),
+        let expected = vec![
+            (
+                "/usr/lib/cargo/bin/findutils/find".to_string(),
+                "/usr/bin/find".to_string(),
+            ),
+            (
+                "/usr/lib/cargo/bin/findutils/xargs".to_string(),
+                "/usr/bin/xargs".to_string(),
+            ),
         ];
 
-        assert_eq!(created_symlinks.len(), 2);
-        for (from, to) in created_symlinks.iter() {
-            assert!(expected.contains(&(from.as_str(), to.as_str())));
-        }
-
+        assert!(vecs_eq(created_symlinks, expected));
         assert_eq!(runner.restored_files.clone().into_inner().len(), 0);
     }
 
@@ -191,12 +187,8 @@ mod tests {
         assert!(commands.contains(&"apt-get remove -y rust-coreutils".to_string()));
 
         let restored_files = runner.restored_files.clone().into_inner();
-        let expected = ["/usr/bin/date", "/usr/bin/sort"];
-
-        assert_eq!(restored_files.len(), 2);
-        for f in restored_files.iter() {
-            assert!(expected.contains(&f.as_str()));
-        }
+        let expected = vec!["/usr/bin/date".to_string(), "/usr/bin/sort".to_string()];
+        assert!(vecs_eq(restored_files, expected));
     }
 
     fn coreutils_fixture(system: &MockSystem) -> UutilsExperiment {

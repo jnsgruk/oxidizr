@@ -85,7 +85,7 @@ impl<'a> SudoRsExperiment<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::{Distribution, MockSystem};
+    use crate::utils::{vecs_eq, Distribution, MockSystem};
 
     #[test]
     fn test_sudors_incompatible_distribution() {
@@ -105,25 +105,30 @@ mod tests {
         assert_eq!(commands, &["apt-get install -y sudo-rs"]);
 
         let backed_up_files = runner.backed_up_files.clone().into_inner();
-        let expected = ["/usr/bin/sudo", "/usr/bin/su", "/usr/sbin/visudo"];
-
-        assert_eq!(backed_up_files.len(), 3);
-        for f in backed_up_files.iter() {
-            assert!(expected.contains(&f.as_str()));
-        }
+        let expected = vec![
+            "/usr/bin/sudo".to_string(),
+            "/usr/bin/su".to_string(),
+            "/usr/sbin/visudo".to_string(),
+        ];
+        assert!(vecs_eq(backed_up_files, expected));
 
         let created_symlinks = runner.created_symlinks.clone().into_inner();
-        let expected = [
-            ("/usr/lib/cargo/bin/su", "/usr/bin/su"),
-            ("/usr/lib/cargo/bin/sudo", "/usr/bin/sudo"),
-            ("/usr/lib/cargo/bin/visudo", "/usr/sbin/visudo"),
+        let expected = vec![
+            (
+                "/usr/lib/cargo/bin/su".to_string(),
+                "/usr/bin/su".to_string(),
+            ),
+            (
+                "/usr/lib/cargo/bin/sudo".to_string(),
+                "/usr/bin/sudo".to_string(),
+            ),
+            (
+                "/usr/lib/cargo/bin/visudo".to_string(),
+                "/usr/sbin/visudo".to_string(),
+            ),
         ];
 
-        assert_eq!(created_symlinks.len(), 3);
-        for (from, to) in created_symlinks.iter() {
-            assert!(expected.contains(&(from.as_str(), to.as_str())));
-        }
-
+        assert!(vecs_eq(created_symlinks, expected));
         assert_eq!(runner.restored_files.clone().into_inner().len(), 0);
     }
 
@@ -143,12 +148,12 @@ mod tests {
         assert!(commands.contains(&"apt-get remove -y sudo-rs".to_string()));
 
         let restored_files = runner.restored_files.clone().into_inner();
-        let expected = ["/usr/bin/sudo", "/usr/bin/su", "/usr/sbin/visudo"];
-
-        assert_eq!(restored_files.len(), 3);
-        for f in restored_files.iter() {
-            assert!(expected.contains(&f.as_str()));
-        }
+        let expected = vec![
+            "/usr/bin/sudo".to_string(),
+            "/usr/bin/su".to_string(),
+            "/usr/sbin/visudo".to_string(),
+        ];
+        assert!(vecs_eq(restored_files, expected));
     }
 
     fn sudors_fixture(system: &MockSystem) -> SudoRsExperiment {
