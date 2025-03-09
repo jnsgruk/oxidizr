@@ -36,7 +36,11 @@ impl<'a> UutilsExperiment<'a> {
 
     /// Check if the system is compatible with the experiment.
     pub fn check_compatible(&self) -> bool {
-        self.system.distribution().release >= self.first_supported_release
+        self.system
+            .distribution()
+            .expect("unable to determine distribution information")
+            .release
+            >= self.first_supported_release
     }
 
     /// Reports the first supported release for the experiment.

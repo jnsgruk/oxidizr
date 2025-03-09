@@ -110,7 +110,7 @@ fn main() -> Result<()> {
 
     // Exit if the application is run on a non-Ubuntu machine.
     anyhow::ensure!(
-        system.distribution().id == "Ubuntu",
+        system.distribution()?.id == "Ubuntu",
         "This program only supports Ubuntu"
     );
 

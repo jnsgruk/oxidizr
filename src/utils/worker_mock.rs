@@ -7,8 +7,6 @@ pub mod tests {
 
     #[derive(Debug, Clone)]
     pub struct MockSystem {
-        /// Distribution information for the mock system.
-        distribution: Distribution,
         /// Tracks the commands executed by the Worker
         pub commands: RefCell<Vec<String>>,
         /// Mock files that the Worker's file-related methods can see/act upon
@@ -21,28 +19,34 @@ pub mod tests {
         pub restored_files: RefCell<Vec<String>>,
         /// List of files backed up by the worker
         pub backed_up_files: RefCell<Vec<String>>,
+        /// HashMap of mocked commands and their faked responses
+        pub mocked_commands: RefCell<HashMap<String, String>>,
     }
 
     impl Default for MockSystem {
         fn default() -> Self {
             Self::new(Distribution {
                 id: "Ubuntu".to_string(),
-                release: "24.04".to_string(),
+                release: "24.10".to_string(),
             })
         }
     }
 
     impl MockSystem {
         pub fn new(distribution: Distribution) -> Self {
-            Self {
-                distribution,
+            let s = Self {
                 commands: RefCell::new(Vec::new()),
                 files: RefCell::new(HashMap::new()),
                 installed_packages: RefCell::new(Vec::new()),
                 created_symlinks: RefCell::new(Vec::new()),
                 restored_files: RefCell::new(Vec::new()),
                 backed_up_files: RefCell::new(Vec::new()),
-            }
+                mocked_commands: RefCell::new(HashMap::new()),
+            };
+
+            s.mock_command("lsb_release -is", distribution.id.as_str());
+            s.mock_command("lsb_release -rs", distribution.release.as_str());
+            return s;
         }
 
         pub fn mock_files(&self, files: Vec<(&str, &str)>) {
@@ -57,6 +61,12 @@ pub mod tests {
             self.installed_packages
                 .borrow_mut()
                 .push(package.to_string());
+        }
+
+        pub fn mock_command(&self, command: &str, stdout: &str) {
+            self.mocked_commands
+                .borrow_mut()
+                .insert(command.to_string(), stdout.to_string());
         }
     }
 
@@ -75,10 +85,6 @@ pub mod tests {
                 .installed_packages
                 .borrow()
                 .contains(&package.to_string()))
-        }
-
-        fn distribution(&self) -> Distribution {
-            self.distribution.clone()
         }
 
         fn list_files(&self, directory: PathBuf) -> Result<Vec<PathBuf>> {

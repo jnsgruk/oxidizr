@@ -11,7 +11,18 @@ use super::{Command, Distribution};
 
 pub trait Worker {
     /// Report the distribution information for the system.
-    fn distribution(&self) -> Distribution;
+    fn distribution(&self) -> Result<Distribution> {
+        let cmd = Command::build("lsb_release", &["-is"]);
+        let id = self.run(&cmd)?;
+
+        let cmd = Command::build("lsb_release", &["-rs"]);
+        let release = self.run(&cmd)?;
+
+        Ok(Distribution {
+            id: String::from_utf8(id.stdout)?.trim().to_string(),
+            release: String::from_utf8(release.stdout)?.trim().to_string(),
+        })
+    }
 
     /// Run a command and return the output. If the command fails, an error will be returned.
     fn run(&self, cmd: &Command) -> Result<Output>;
@@ -64,51 +75,16 @@ pub trait Worker {
 /// A struct representing the system with functions for running commands and manipulating
 /// files on the filesystem.
 #[derive(Clone, Debug)]
-pub struct System {
-    distribution: Distribution,
-}
+pub struct System {}
 
 impl System {
     /// Create a new `System` instance.
     pub fn new() -> Result<Self> {
-        Ok(Self {
-            distribution: Self::get_distribution()?,
-        })
-    }
-
-    /// Get the distribution information for the system.
-    fn get_distribution() -> Result<Distribution> {
-        let cmd = Command::build("lsb_release", &["-is"]);
-        debug!("Running command: {}", cmd.command());
-
-        let output = std::process::Command::new(&cmd.command)
-            .args(&cmd.args)
-            .output()?;
-
-        let dist_id = String::from_utf8(output.stdout)?.trim().to_string();
-
-        let cmd = Command::build("lsb_release", &["-rs"]);
-        debug!("Running command: {}", cmd.command());
-
-        let output = std::process::Command::new(&cmd.command)
-            .args(&cmd.args)
-            .output()?;
-
-        let release = String::from_utf8(output.stdout)?.trim().to_string();
-
-        Ok(Distribution {
-            id: dist_id,
-            release,
-        })
+        Ok(Self {})
     }
 }
 
 impl Worker for System {
-    /// Report the distribution information for the system.
-    fn distribution(&self) -> Distribution {
-        self.distribution.clone()
-    }
-
     /// Run a command and return the output. If the command fails, an error will be returned.
     fn run(&self, cmd: &Command) -> Result<Output> {
         debug!("Running command: {}", cmd.command());

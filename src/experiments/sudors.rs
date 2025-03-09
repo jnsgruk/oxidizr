@@ -20,7 +20,12 @@ impl<'a> SudoRsExperiment<'a> {
 
     /// Check if the system is compatible with the experiment.
     pub fn check_compatible(&self) -> bool {
-        self.system.distribution().release.as_str() >= FIRST_SUPPORTED_RELEASE
+        self.system
+            .distribution()
+            .expect("unable to determine distribution information")
+            .release
+            .as_str()
+            >= FIRST_SUPPORTED_RELEASE
     }
 
     /// Reports the first supported release for the experiment.
