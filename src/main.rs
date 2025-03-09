@@ -119,19 +119,31 @@ fn main() -> Result<()> {
 
     // Handle subcommands
     match args.cmd {
-        Commands::Enable => {
-            confirm_or_exit(args.yes);
-
-            info!("Updating apt package cache");
-            system.update_package_lists()?;
-
-            enable(selected)
-        }
-        Commands::Disable => {
-            confirm_or_exit(args.yes);
-            disable(selected)
-        }
+        Commands::Enable => enable(&system, selected, args.yes),
+        Commands::Disable => disable(selected, args.yes),
     }
+}
+
+/// Enables selected experiments
+fn enable<'a>(system: &'a impl Worker, experiments: Vec<Experiment>, yes: bool) -> Result<()> {
+    confirm_or_exit(yes);
+
+    info!("Updating apt package cache");
+    system.update_package_lists()?;
+
+    for e in experiments.iter() {
+        e.enable()?;
+    }
+    Ok(())
+}
+
+// Disable selected experiments
+fn disable(experiments: Vec<Experiment<'_>>, yes: bool) -> Result<()> {
+    confirm_or_exit(yes);
+    for e in experiments.iter() {
+        e.disable()?;
+    }
+    Ok(())
 }
 
 /// Get selected experiments from the command line arguments.
@@ -187,22 +199,6 @@ fn confirm_or_exit(yes: bool) {
         Ok(false) => exit(1),
         Err(_) => exit(1),
     }
-}
-
-/// Enables selected experiments
-fn enable(experiments: Vec<Experiment>) -> Result<()> {
-    for e in experiments.iter() {
-        e.enable()?;
-    }
-    Ok(())
-}
-
-// Disable selected experiments
-fn disable(experiments: Vec<Experiment<'_>>) -> Result<()> {
-    for e in experiments.iter() {
-        e.disable()?;
-    }
-    Ok(())
 }
 
 // Default experiments to enable if none are specified
