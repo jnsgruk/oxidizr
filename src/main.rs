@@ -38,7 +38,7 @@ use experiments::{all_experiments, Experiment};
 use inquire::Confirm;
 use tracing::{info, warn};
 use tracing_subscriber::{fmt, prelude::*};
-use utils::{System, Worker};
+use utils::{vecs_eq, System, Worker};
 
 /// A command-line utility to install modern Rust-based replacements of essential
 /// packages such as coreutils, findutils, diffutils and sudo and make them the
@@ -115,7 +115,7 @@ fn main() -> Result<()> {
     );
 
     // Get selected experiments from the command line arguments
-    let selected = get_selected_experiments(args.all, args.experiments.clone(), &system);
+    let selected = selected_experiments(args.all, args.experiments.clone(), &system);
 
     // Handle subcommands
     match args.cmd {
@@ -135,26 +135,23 @@ fn main() -> Result<()> {
 }
 
 /// Get selected experiments from the command line arguments.
-fn get_selected_experiments<'a>(
+fn selected_experiments<'a>(
     all: bool,
     selected: Vec<String>,
     system: &'a impl Worker,
 ) -> Vec<Experiment<'a>> {
     let all_experiments = all_experiments(system);
+    let default_experiments = default_experiments();
 
     match all {
         true => {
-            let mut selected = selected.clone();
-            selected.sort();
-            if selected.len() > 0 && selected != default_experiments() {
+            if selected.len() > 0 && !vecs_eq(selected, default_experiments) {
                 warn!("Ignoring --experiments flag as --all is set");
             }
 
             all_experiments
         }
         false => {
-            let default_experiments = vec!["coreutils".to_string(), "sudo-rs".to_string()];
-
             // If no experiments are selected, default to coreutils and sudo-rs
             let filter = match selected.len() {
                 0 => default_experiments,
