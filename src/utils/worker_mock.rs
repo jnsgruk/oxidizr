@@ -27,7 +27,7 @@ pub mod tests {
         fn default() -> Self {
             Self::new(Distribution {
                 id: "Ubuntu".to_string(),
-                release: "24.10".to_string(),
+                release: "24.04".to_string(),
             })
         }
     }
@@ -73,8 +73,12 @@ pub mod tests {
     impl Worker for MockSystem {
         fn run(&self, cmd: &Command) -> Result<Output> {
             self.commands.borrow_mut().push(cmd.command());
+            let mocked = self.mocked_commands.borrow();
+            let default_stdout = String::default();
+            let stdout = mocked.get(&cmd.command()).unwrap_or(&default_stdout);
+
             Ok(Output {
-                stdout: Vec::new(),
+                stdout: stdout.as_bytes().to_vec(),
                 stderr: Vec::new(),
                 status: std::process::ExitStatus::default(),
             })
