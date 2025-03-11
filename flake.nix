@@ -10,7 +10,7 @@
     {
       self,
       nixpkgs,
-      rust-overlay,
+      ...
     }:
     let
       supportedSystems = [
@@ -23,7 +23,7 @@
         system:
         (import nixpkgs {
           inherit system;
-          overlays = [ (import rust-overlay) ];
+          overlays = [ self.inputs.rust-overlay.overlays.default ];
         });
     in
     {
@@ -64,7 +64,12 @@
         let
           pkgs = pkgsForSystem system;
           rust = pkgs.rust-bin.stable.latest.default.override {
-            extensions = [ "rust-src" ];
+            extensions = [
+              "rust-src"
+              "clippy"
+              "rust-analyzer"
+              "rustfmt"
+            ];
           };
         in
         {
@@ -74,11 +79,15 @@
             NIX_CONFIG = "experimental-features = nix-command flakes";
             RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
 
-            inputsFrom = [ self.packages.${system}.oxidizr ];
-            buildInputs = with pkgs; [
-              clippy
-              rust
-            ];
+            buildInputs =
+              (with pkgs; [
+                cargo-cross
+                rustup
+                spread
+                goreleaser
+                jq
+              ])
+              ++ [ rust ];
           };
         }
       );

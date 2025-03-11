@@ -43,13 +43,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup goreleaser
-        run: |
-          sudo snap install --classic goreleaser
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v16
 
       - name: Release oxidizr
         id: build
         run: |
-          goreleaser release --clean --verbose
+          nix develop -c goreleaser release --clean --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,7 +3,6 @@ project_name: oxidizr
 before:
   hooks:
     - rustup default stable
-    - cargo install cross --git https://github.com/cross-rs/cross
 
 builds:
   - builder: rust
@@ -14,7 +13,8 @@ builds:
     command: build
 
 archives:
-  - format: tar.gz
+  - formats:
+      - tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_

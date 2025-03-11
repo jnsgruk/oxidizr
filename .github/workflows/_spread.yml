@@ -20,16 +20,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23.0"
-
-      - name: Install
-        run: go install github.com/snapcore/spread/cmd/spread@latest
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v16
 
       - name: Setup LXD
         uses: canonical/setup-lxd@v0.1.2
 
       - name: Run integration tests
-        run: spread -v "${{ matrix.test }}"
+        run: nix develop -c spread -v "${{ matrix.test }}"

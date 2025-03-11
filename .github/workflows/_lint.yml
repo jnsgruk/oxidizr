@@ -11,15 +11,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Setup Rust
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential
-          sudo snap install --classic rustup
-          rustup default stable
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v16
 
       - name: Check formattting
-        run: cargo fmt --check
+        run: nix develop -c cargo fmt --check
 
       - name: Lint
-        run: cargo clippy
+        run: nix develop -c cargo clippy
