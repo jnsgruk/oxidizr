@@ -9,8 +9,10 @@ pub mod tests {
     pub struct MockSystem {
         /// Tracks the commands executed by the Worker
         pub commands: RefCell<Vec<String>>,
-        /// Mock files that the Worker's file-related methods can see/act upon
-        pub files: RefCell<HashMap<PathBuf, String>>,
+        /// Mock files that the Worker's file-related methods can see/act upon.
+        /// The String is the contents, and the bool indicates if this file takes
+        /// priority in the simulated $PATH, and returned by the `MockSystem::which` function.
+        pub files: RefCell<HashMap<PathBuf, (String, bool)>>,
         /// A list of packages that should report as "installed" on the mock system
         pub installed_packages: RefCell<Vec<String>>,
         /// List of symlinks created by the worker
@@ -46,14 +48,14 @@ pub mod tests {
 
             s.mock_command("lsb_release -is", distribution.id.as_str());
             s.mock_command("lsb_release -rs", distribution.release.as_str());
-            return s;
+            s
         }
 
-        pub fn mock_files(&self, files: Vec<(&str, &str)>) {
-            for (path, contents) in files {
+        pub fn mock_files(&self, files: Vec<(&str, &str, bool)>) {
+            for (path, contents, primary) in files {
                 self.files
                     .borrow_mut()
-                    .insert(PathBuf::from(path), contents.to_string());
+                    .insert(PathBuf::from(path), (contents.to_string(), primary));
             }
         }
 
@@ -100,6 +102,15 @@ pub mod tests {
                 .map(|(k, _)| k.clone())
                 .collect();
             Ok(files)
+        }
+
+        fn which(&self, binary_name: &str) -> Result<PathBuf> {
+            for (filename, file) in self.files.borrow().iter() {
+                if filename.file_name().unwrap().to_str().unwrap() == binary_name && file.1 {
+                    return Ok(filename.clone());
+                }
+            }
+            anyhow::bail!("{} not found in mocked filesystem", binary_name);
         }
 
         fn replace_file_with_symlink(&self, source: PathBuf, target: PathBuf) -> Result<()> {

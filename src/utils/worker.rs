@@ -6,6 +6,7 @@ use std::{
 use anyhow::Result;
 use std::fs;
 use tracing::{debug, trace, warn};
+use which::which;
 
 use super::{Command, Distribution};
 
@@ -29,6 +30,9 @@ pub trait Worker {
 
     /// List files in a directory, returning an error if the directory does not exist.
     fn list_files(&self, directory: PathBuf) -> Result<Vec<PathBuf>>;
+
+    /// Find the path to a binary in the system's PATH.
+    fn which(&self, binary_name: &str) -> Result<PathBuf>;
 
     /// Install a package using the system package manager.
     fn install_package(&self, package: &str) -> Result<()> {
@@ -120,6 +124,11 @@ impl Worker for System {
             .collect::<Result<Vec<PathBuf>>>()?;
 
         Ok(files)
+    }
+
+    /// Find the path to a binary in the system's PATH.
+    fn which(&self, binary_name: &str) -> Result<PathBuf> {
+        Ok(which(binary_name)?)
     }
 
     /// Replace a file with a symlink. If the target file already exists, it will be backed up

@@ -2,7 +2,6 @@ use crate::utils::Worker;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 use tracing::info;
-use which::which;
 
 /// An experiment to install and configure a Rust-based replacement for a system utility.
 pub struct UutilsExperiment<'a> {
@@ -66,8 +65,8 @@ impl<'a> UutilsExperiment<'a> {
         let files = self.system.list_files(self.bin_directory.clone())?;
 
         for f in files {
-            let filename = f.file_name().unwrap();
-            let existing = match which(filename) {
+            let filename = f.file_name().unwrap().to_str().unwrap();
+            let existing = match self.system.which(filename) {
                 Ok(path) => path,
                 Err(_) => Path::new("/usr/bin").join(filename),
             };
@@ -88,8 +87,8 @@ impl<'a> UutilsExperiment<'a> {
         let files = self.system.list_files(self.bin_directory.clone())?;
 
         for f in files {
-            let filename = f.file_name().unwrap();
-            let existing = match which(filename) {
+            let filename = f.file_name().unwrap().to_str().unwrap();
+            let existing = match self.system.which(filename) {
                 Ok(path) => path,
                 Err(_) => Path::new("/usr/bin").join(filename),
             };
@@ -209,10 +208,10 @@ mod tests {
     fn coreutils_compatible_runner() -> MockSystem {
         let runner = MockSystem::default();
         runner.mock_files(vec![
-            ("/usr/lib/cargo/bin/coreutils/date", ""),
-            ("/usr/lib/cargo/bin/coreutils/sort", ""),
-            ("/usr/bin/sort", ""),
-            ("/usr/bin/date", ""),
+            ("/usr/lib/cargo/bin/coreutils/date", "", false),
+            ("/usr/lib/cargo/bin/coreutils/sort", "", false),
+            ("/usr/bin/sort", "", true),
+            ("/usr/bin/date", "", true),
         ]);
         runner
     }
@@ -231,10 +230,10 @@ mod tests {
     fn findutils_compatible_runner() -> MockSystem {
         let runner = MockSystem::default();
         runner.mock_files(vec![
-            ("/usr/lib/cargo/bin/findutils/find", ""),
-            ("/usr/lib/cargo/bin/findutils/xargs", ""),
-            ("/usr/bin/find", ""),
-            ("/usr/bin/xargs", ""),
+            ("/usr/lib/cargo/bin/findutils/find", "", false),
+            ("/usr/lib/cargo/bin/findutils/xargs", "", false),
+            ("/usr/bin/find", "", true),
+            ("/usr/bin/xargs", "", true),
         ]);
         runner
     }

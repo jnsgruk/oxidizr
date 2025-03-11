@@ -125,7 +125,7 @@ fn main() -> Result<()> {
 }
 
 /// Enables selected experiments
-fn enable<'a>(system: &'a impl Worker, experiments: Vec<Experiment>, yes: bool) -> Result<()> {
+fn enable(system: &impl Worker, experiments: Vec<Experiment>, yes: bool) -> Result<()> {
     confirm_or_exit(yes);
 
     info!("Updating apt package cache");
@@ -147,17 +147,17 @@ fn disable(experiments: Vec<Experiment<'_>>, yes: bool) -> Result<()> {
 }
 
 /// Get selected experiments from the command line arguments.
-fn selected_experiments<'a>(
+fn selected_experiments(
     all: bool,
     selected: Vec<String>,
-    system: &'a impl Worker,
-) -> Vec<Experiment<'a>> {
+    system: &impl Worker,
+) -> Vec<Experiment<'_>> {
     let all_experiments = all_experiments(system);
     let default_experiments = default_experiments();
 
     match all {
         true => {
-            if selected.len() > 0 && !vecs_eq(selected, default_experiments) {
+            if !selected.is_empty() && !vecs_eq(selected, default_experiments) {
                 warn!("Ignoring --experiments flag as --all is set");
             }
 

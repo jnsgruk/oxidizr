@@ -2,7 +2,6 @@ use crate::utils::Worker;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 use tracing::info;
-use which::which;
 
 const PACKAGE: &str = "sudo-rs";
 const FIRST_SUPPORTED_RELEASE: &str = "24.04";
@@ -49,8 +48,8 @@ impl<'a> SudoRsExperiment<'a> {
         self.system.install_package(PACKAGE)?;
 
         for f in Self::sudors_files() {
-            let filename = f.file_name().unwrap();
-            let existing = match which(filename) {
+            let filename = f.file_name().unwrap().to_str().unwrap();
+            let existing = match self.system.which(filename) {
                 Ok(path) => path,
                 Err(_) => Path::new("/usr/bin").join(filename),
             };
@@ -63,8 +62,8 @@ impl<'a> SudoRsExperiment<'a> {
     /// Disable the experiment by removing the package and restoring the original files.
     pub fn disable(&self) -> Result<()> {
         for f in Self::sudors_files() {
-            let filename = f.file_name().unwrap();
-            let existing = match which(filename) {
+            let filename = f.file_name().unwrap().to_str().unwrap();
+            let existing = match self.system.which(filename) {
                 Ok(path) => path,
                 Err(_) => Path::new("/usr/bin").join(filename),
             };
@@ -168,12 +167,12 @@ mod tests {
     fn sudors_compatible_runner() -> MockSystem {
         let runner = MockSystem::default();
         runner.mock_files(vec![
-            ("/usr/lib/cargo/bin/sudo", ""),
-            ("/usr/lib/cargo/bin/su", ""),
-            ("/usr/lib/cargo/bin/visudo", ""),
-            ("/usr/bin/sudo", ""),
-            ("/usr/bin/su", ""),
-            ("/usr/sbin/visudo", ""),
+            ("/usr/lib/cargo/bin/sudo", "", false),
+            ("/usr/lib/cargo/bin/su", "", false),
+            ("/usr/lib/cargo/bin/visudo", "", false),
+            ("/usr/bin/sudo", "", true),
+            ("/usr/bin/su", "", true),
+            ("/usr/sbin/visudo", "", true),
         ]);
         runner
     }
