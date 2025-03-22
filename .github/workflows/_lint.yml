@@ -14,7 +14,7 @@ jobs:
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v16
 
-      - name: Check formattting
+      - name: Check formatting
         run: nix develop -c cargo fmt --check
 
       - name: Lint
