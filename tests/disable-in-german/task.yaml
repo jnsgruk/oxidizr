@@ -1,0 +1,26 @@
+summary: Test selectively disabling experiments when locale is not English
+execute: |
+  sed -i 's|# de_DE.UTF-8 UTF-8|de_DE.UTF-8 UTF-8|g' /etc/locale.gen
+  locale-gen
+
+  export LC_ALL=de_DE.UTF-8
+  export LANGUAGE=de_DE.UTF-8
+  export LANG=de_DE.UTF-8
+
+  source ${SPREAD_PATH}/tests/lib/uutils.sh
+  source ${SPREAD_PATH}/tests/lib/sudo-rs.sh
+
+  oxidizr enable --yes
+  oxidizr disable --yes --experiments coreutils
+
+  export LC_ALL=en_GB.UTF-8
+  export LANGUAGE=en_GB.UTF-8
+  export LANG=en_GB.UTF-8
+
+  ensure_coreutils_absent
+  ensure_sudors_installed
+
+restore: |
+  if [[ -z "${CI:-}" ]]; then
+    oxidizr disable --yes --all
+  fi
