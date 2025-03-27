@@ -57,10 +57,11 @@ pub trait Worker {
 
     /// Check if a package is installed using the system package manager.
     fn check_installed(&self, package: &str) -> Result<bool> {
-        let cmd = Command::build("apt", &["list", package]);
-        let output = self.run(&cmd)?;
-        let output = String::from_utf8(output.stdout)?.to_string();
-        Ok(output.contains("installed"))
+        let cmd = Command::build("dpkg-query", &["-s", package]);
+        match self.run(&cmd) {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false),
+        }
     }
 
     /// Replace a file with a symlink. If the target file already exists, it will be backed up.
