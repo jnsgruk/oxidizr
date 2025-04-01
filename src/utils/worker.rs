@@ -170,7 +170,6 @@ impl Worker for System {
 
         if fs::exists(&backup_file)? {
             trace!("Restoring {} -> {}", backup_file.display(), file.display());
-            dbg!(&backup_file, &file);
             fs::rename(&backup_file, &file)?;
         } else {
             warn!("No backup found for '{}', skipping restore", file.display());
