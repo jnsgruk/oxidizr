@@ -9,7 +9,7 @@ backends:
   lxd:
     type: adhoc
     allocate: |
-      CONTAINER_NAME="${oxidizr-${SPREAD_SYSTEM/./-}-${RANDOM}}"
+      CONTAINER_NAME="oxidizr-${SPREAD_SYSTEM/./-}-${RANDOM}"
 
       lxc launch \
         "${SPREAD_SYSTEM/-/:}" \
