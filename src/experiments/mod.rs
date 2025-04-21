@@ -20,8 +20,8 @@ impl Experiment<'_> {
         }
     }
 
-    pub fn enable(&self) -> Result<()> {
-        if !self.check_compatible() {
+    pub fn enable(&self, no_compatibility_check: bool) -> Result<()> {
+        if !no_compatibility_check && !self.check_compatible() {
             warn!(
                 "Skipping '{}'. Minimum supported release is {}.",
                 self.name(),
