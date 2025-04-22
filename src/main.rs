@@ -68,6 +68,14 @@ struct Args {
     all: bool,
 
     #[arg(
+        long,
+        default_value_t = false,
+        global = true,
+        help = "Skip compatibility checks (dangerous)"
+    )]
+    no_compatibility_check: bool,
+
+    #[arg(
         short,
         long,
         global = true,
@@ -108,31 +116,40 @@ fn main() -> Result<()> {
     // Initialise the system, gather system information.
     let system = System::new()?;
 
-    // Exit if the application is run on a non-Ubuntu machine.
-    anyhow::ensure!(
-        system.distribution()?.id == "Ubuntu",
-        "This program only supports Ubuntu"
-    );
+    // Exit if the application is run on a non-Ubuntu machine (unless compatibility check is skipped).
+    if !args.no_compatibility_check {
+        anyhow::ensure!(
+            system.distribution()?.id == "Ubuntu",
+            "This program only supports Ubuntu"
+        );
+    } else if system.distribution()?.id != "Ubuntu" {
+        warn!("Running on a non-Ubuntu distribution. This is unsupported and may cause system instability.");
+    }
 
     // Get selected experiments from the command line arguments
     let selected = selected_experiments(args.all, args.experiments.clone(), &system);
 
     // Handle subcommands
     match args.cmd {
-        Commands::Enable => enable(&system, selected, args.yes),
+        Commands::Enable => enable(&system, selected, args.yes, args.no_compatibility_check),
         Commands::Disable => disable(selected, args.yes),
     }
 }
 
 /// Enables selected experiments
-fn enable(system: &impl Worker, experiments: Vec<Experiment>, yes: bool) -> Result<()> {
+fn enable(
+    system: &impl Worker,
+    experiments: Vec<Experiment>,
+    yes: bool,
+    no_compatibility_check: bool,
+) -> Result<()> {
     confirm_or_exit(yes);
 
     info!("Updating apt package cache");
     system.update_package_lists()?;
 
     for e in experiments.iter() {
-        e.enable()?;
+        e.enable(no_compatibility_check)?;
     }
     Ok(())
 }
