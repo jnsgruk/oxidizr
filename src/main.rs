@@ -143,21 +143,6 @@ fn enable(
     yes: bool,
     no_compatibility_check: bool,
 ) -> Result<()> {
-    // If not using --yes and using --no-compatibility-check, show a specific warning and confirm
-    if !yes && no_compatibility_check {
-        let ans = Confirm::new("Skip compatibility checks?")
-            .with_default(false)
-            .with_help_message("⚠️ Skipping compatibility checks is dangerous! ⚠️\nThis may lead to system instability or failure to boot.\nOnly proceed if you understand the risks.")
-            .prompt();
-
-        match ans {
-            Ok(true) => (),
-            Ok(false) => exit(1),
-            Err(_) => exit(1),
-        }
-    }
-
-    // Regular confirmation prompt
     confirm_or_exit(yes);
 
     info!("Updating apt package cache");

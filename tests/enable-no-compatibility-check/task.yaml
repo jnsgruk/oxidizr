@@ -1,0 +1,16 @@
+summary: Test enabling experiments with --no-compatibility-check flag
+execute: |
+  source ${SPREAD_PATH}/tests/lib/uutils.sh
+  source ${SPREAD_PATH}/tests/lib/sudo-rs.sh
+  
+  oxidizr enable --yes --no-compatibility-check --experiments coreutils findutils sudo-rs
+  
+  # Verify that the experiments were actually enabled
+  ensure_coreutils_installed
+  ensure_findutils_installed
+  ensure_sudors_installed
+
+restore: |
+  if [[ -z "${CI:-}" ]]; then
+    oxidizr disable --yes --experiments coreutils findutils sudo-rs --no-compatibility-check
+  fi
