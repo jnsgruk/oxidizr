@@ -23,9 +23,9 @@ impl Experiment<'_> {
     pub fn enable(&self, no_compatibility_check: bool) -> Result<()> {
         if !no_compatibility_check && !self.check_compatible() {
             warn!(
-                "Skipping '{}'. Minimum supported release is {}.",
+                "Skipping '{}'. Minimum supported releases are {}.",
                 self.name(),
-                self.first_supported_release()
+                self.supported_releases().join(", ")
             );
             return Ok(());
         }
@@ -53,10 +53,10 @@ impl Experiment<'_> {
         }
     }
 
-    pub fn first_supported_release(&self) -> &str {
+    pub fn supported_releases(&self) -> Vec<String> {
         match self {
-            Experiment::Uutils(e) => e.first_supported_release(),
-            Experiment::SudoRs(e) => e.first_supported_release(),
+            Experiment::Uutils(e) => e.supported_releases(),
+            Experiment::SudoRs(e) => e.supported_releases(),
         }
     }
 
@@ -74,7 +74,7 @@ pub fn all_experiments<'a>(system: &'a impl Worker) -> Vec<Experiment<'a>> {
             "coreutils",
             system,
             "rust-coreutils",
-            "24.04",
+            &["24.04", "24.10", "25.04"],
             Some(PathBuf::from("/usr/bin/coreutils")),
             PathBuf::from("/usr/lib/cargo/bin/coreutils"),
         )),
@@ -82,7 +82,7 @@ pub fn all_experiments<'a>(system: &'a impl Worker) -> Vec<Experiment<'a>> {
             "diffutils",
             system,
             "rust-diffutils",
-            "24.10",
+            &["24.10", "25.04"],
             Some(PathBuf::from("/usr/lib/cargo/bin/diffutils/diffutils")),
             PathBuf::from("/usr/lib/cargo/bin/diffutils"),
         )),
@@ -90,7 +90,7 @@ pub fn all_experiments<'a>(system: &'a impl Worker) -> Vec<Experiment<'a>> {
             "findutils",
             system,
             "rust-findutils",
-            "24.04",
+            &["24.04", "24.10", "25.04"],
             None,
             PathBuf::from("/usr/lib/cargo/bin/findutils"),
         )),

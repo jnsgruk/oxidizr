@@ -8,7 +8,7 @@ pub struct UutilsExperiment<'a> {
     name: String,
     system: &'a dyn Worker,
     package: String,
-    first_supported_release: String,
+    supported_releases: Vec<String>,
     unified_binary: Option<PathBuf>,
     bin_directory: PathBuf,
 }
@@ -19,7 +19,7 @@ impl<'a> UutilsExperiment<'a> {
         name: &str,
         system: &'a dyn Worker,
         package: &str,
-        first_supported_release: &str,
+        supported_releases: &[&str],
         unified_binary: Option<PathBuf>,
         bin_directory: PathBuf,
     ) -> Self {
@@ -27,7 +27,10 @@ impl<'a> UutilsExperiment<'a> {
             name: name.to_string(),
             system,
             package: package.to_string(),
-            first_supported_release: first_supported_release.to_string(),
+            supported_releases: supported_releases
+                .iter()
+                .map(|&release| release.to_string())
+                .collect(),
             unified_binary,
             bin_directory,
         }
@@ -35,16 +38,18 @@ impl<'a> UutilsExperiment<'a> {
 
     /// Check if the system is compatible with the experiment.
     pub fn check_compatible(&self) -> bool {
-        self.system
-            .distribution()
-            .expect("unable to determine distribution information")
-            .release
-            >= self.first_supported_release
+        self.supported_releases().contains(
+            &self
+                .system
+                .distribution()
+                .expect("unable to determine distribution information")
+                .release,
+        )
     }
 
     /// Reports the first supported release for the experiment.
-    pub fn first_supported_release(&self) -> &str {
-        &self.first_supported_release
+    pub fn supported_releases(&self) -> Vec<String> {
+        return self.supported_releases.clone();
     }
 
     /// Check if the package is installed.
@@ -199,7 +204,7 @@ mod tests {
             "coreutils",
             system,
             "rust-coreutils",
-            "24.04",
+            &["24.04", "24.10", "25.04"],
             Some(PathBuf::from("/usr/bin/coreutils")),
             PathBuf::from("/usr/lib/cargo/bin/coreutils"),
         )
@@ -221,7 +226,7 @@ mod tests {
             "findutils",
             system,
             "rust-findutils",
-            "24.04",
+            &["24.04", "24.10", "25.04"],
             None,
             PathBuf::from("/usr/lib/cargo/bin/findutils"),
         )

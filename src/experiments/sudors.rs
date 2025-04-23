@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use tracing::info;
 
 const PACKAGE: &str = "sudo-rs";
-const FIRST_SUPPORTED_RELEASE: &str = "24.04";
 
 /// An experiment to install and configure sudo-rs as a replacement for sudo.
 pub struct SudoRsExperiment<'a> {
@@ -19,17 +18,22 @@ impl<'a> SudoRsExperiment<'a> {
 
     /// Check if the system is compatible with the experiment.
     pub fn check_compatible(&self) -> bool {
-        self.system
-            .distribution()
-            .expect("unable to determine distribution information")
-            .release
-            .as_str()
-            >= FIRST_SUPPORTED_RELEASE
+        self.supported_releases().contains(
+            &self
+                .system
+                .distribution()
+                .expect("unable to determine distribution information")
+                .release,
+        )
     }
 
     /// Reports the first supported release for the experiment.
-    pub fn first_supported_release(&self) -> &str {
-        FIRST_SUPPORTED_RELEASE
+    pub fn supported_releases(&self) -> Vec<String> {
+        return vec![
+            "24.04".to_string(),
+            "24.10".to_string(),
+            "25.04".to_string(),
+        ];
     }
 
     /// Check if the package is installed.
