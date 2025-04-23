@@ -25,7 +25,6 @@ echo
 env
 expand
 expr
-factor
 false
 fmt
 fold
