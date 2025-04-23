@@ -74,9 +74,10 @@ Options:
           [default: coreutils sudo-rs]
 
   --no-compatibility-check
-          Skip compatibility checks (dangerous)
+          Skip experiment compatibility checks (dangerous)
           This bypasses all system compatibility checks including Ubuntu distribution
-          and version requirements. May lead to system instability.
+          and version requirements. Likely to result in failure to complete, may lead
+          to system instability
 
   -h, --help
           Print help (see a summary with '-h')
@@ -94,10 +95,8 @@ sudo oxidizr enable --all
 sudo oxidizr enable --experiments coreutils findutils
 # Enable just coreutils experiment without prompting with debug logging enabled
 sudo oxidizr enable --experiments coreutils --yes -v
-
 # Enable an experiment on an unsupported system (dangerous)
 sudo oxidizr enable --no-compatibility-check
-
 # Enable an experiment on an unsupported system without prompting (very dangerous)
 sudo oxidizr enable --no-compatibility-check --yes
 ```
