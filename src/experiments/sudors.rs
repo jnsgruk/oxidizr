@@ -29,11 +29,11 @@ impl<'a> SudoRsExperiment<'a> {
 
     /// Reports the first supported release for the experiment.
     pub fn supported_releases(&self) -> Vec<String> {
-        return vec![
+        vec![
             "24.04".to_string(),
             "24.10".to_string(),
             "25.04".to_string(),
-        ];
+        ]
     }
 
     /// Check if the package is installed.
@@ -93,7 +93,7 @@ impl<'a> SudoRsExperiment<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::{vecs_eq, Distribution, MockSystem};
+    use crate::utils::{Distribution, MockSystem, vecs_eq};
 
     #[test]
     fn test_sudors_incompatible_distribution() {

@@ -49,7 +49,7 @@ impl<'a> UutilsExperiment<'a> {
 
     /// Reports the first supported release for the experiment.
     pub fn supported_releases(&self) -> Vec<String> {
-        return self.supported_releases.clone();
+        self.supported_releases.clone()
     }
 
     /// Check if the package is installed.
@@ -110,7 +110,7 @@ impl<'a> UutilsExperiment<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::{vecs_eq, Distribution, MockSystem};
+    use crate::utils::{Distribution, MockSystem, vecs_eq};
 
     #[test]
     fn test_uutils_incompatible_distribution() {

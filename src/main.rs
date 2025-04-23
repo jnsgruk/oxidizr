@@ -34,11 +34,11 @@ use std::process::exit;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
-use experiments::{all_experiments, Experiment};
+use experiments::{Experiment, all_experiments};
 use inquire::Confirm;
 use tracing::{info, warn};
 use tracing_subscriber::{fmt, prelude::*};
-use utils::{vecs_eq, System, Worker};
+use utils::{System, Worker, vecs_eq};
 
 /// A command-line utility to install modern Rust-based replacements of essential
 /// packages such as coreutils, findutils, diffutils and sudo and make them the
@@ -123,7 +123,9 @@ fn main() -> Result<()> {
             "This program only supports Ubuntu"
         );
     } else if system.distribution()?.id != "Ubuntu" {
-        warn!("Running on a non-Ubuntu distribution. This is unsupported and may cause system instability.");
+        warn!(
+            "Running on a non-Ubuntu distribution. This is unsupported and may cause system instability."
+        );
     }
 
     // Get selected experiments from the command line arguments
