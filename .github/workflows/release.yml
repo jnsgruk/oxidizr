@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install nix
-        uses: DeterminateSystems/nix-installer-action@v16
+        uses: DeterminateSystems/nix-installer-action@v17
 
       - name: Release oxidizr
         id: build
