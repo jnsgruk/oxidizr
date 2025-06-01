@@ -24,7 +24,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v17
 
       - name: Setup LXD
-        uses: canonical/setup-lxd@v0.1.2
+        uses: canonical/setup-lxd@v0.1.3
 
       - name: Run integration tests
         run: nix develop -c spread -v "${{ matrix.test }}"
